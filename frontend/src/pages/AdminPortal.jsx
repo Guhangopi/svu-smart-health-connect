@@ -1,0 +1,402 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import CalendarView from "../components/CalendarView";
+import Sidebar from "../components/Sidebar";
+
+function AdminPortal() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("doctors");
+  const [doctors, setDoctors] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    morningStart: "09:00",
+    morningEnd: "13:00",
+    eveningStart: "17:00",
+    eveningEnd: "21:00",
+    specialization: "General"
+  });
+
+  const [editingDoctor, setEditingDoctor] = useState(null);
+  
+  // Calendar Management State
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [calendarDoctor, setCalendarDoctor] = useState(null);
+  const [unavailableDates, setUnavailableDates] = useState([]);
+
+  useEffect(() => {
+    const userInfo = JSON.parse(localStorage.getItem("user"));
+    if (!userInfo || userInfo.role !== "admin") {
+      navigate("/");
+      return;
+    }
+    fetchDoctors();
+    fetchAppointments();
+  }, [navigate]);
+
+  const fetchDoctors = () => {
+    axios.get("http://127.0.0.1:5000/api/admin/doctors")
+      .then((res) => setDoctors(res.data))
+      .catch((err) => console.error(err));
+  };
+
+  const fetchAppointments = () => {
+    axios.get("http://127.0.0.1:5000/api/admin/appointments")
+      .then((res) => setAppointments(res.data))
+      .catch((err) => console.error(err));
+  };
+
+  const handleCreateDoctor = () => {
+    axios.post("http://127.0.0.1:5000/api/admin/doctors", formData)
+      .then(() => {
+        toast.success("Doctor Created Successfully!");
+        setShowAddModal(false);
+        fetchDoctors();
+        setFormData({ name: "", email: "", password: "", morningStart: "09:00", morningEnd: "13:00", eveningStart: "17:00", eveningEnd: "21:00", specialization: "General" });
+      })
+      .catch((err) => toast.error(err.response?.data?.error || "Error creating doctor"));
+  };
+
+  const handleUpdateDoctor = () => {
+    axios.put(`http://127.0.0.1:5000/api/admin/doctor/${editingDoctor.id}`, formData)
+      .then(() => {
+        toast.info("Doctor details updated.");
+        setShowEditModal(false);
+        fetchDoctors();
+        setEditingDoctor(null);
+      })
+      .catch((err) => toast.error("Error updating doctor"));
+  };
+
+  const handleDeleteDoctor = (id) => {
+    if (window.confirm("Are you sure you want to remove this doctor?")) {
+      axios.delete(`http://127.0.0.1:5000/api/admin/doctor/${id}`)
+        .then(() => {
+            fetchDoctors();
+            toast.warn("Doctor removed.");
+        })
+        .catch((err) => toast.error("Error deleting doctor"));
+    }
+  };
+
+  const handleDeleteAppointment = (id) => {
+    if (window.confirm("Are you sure you want to PERMANENTLY delete this appointment?")) {
+        axios.delete(`http://127.0.0.1:5000/api/admin/appointment/${id}`)
+            .then(() => {
+                fetchAppointments();
+                toast.success("Appointment deleted.");
+            })
+            .catch((err) => toast.error("Error deleting appointment"));
+    }
+  };
+
+  const openEditModal = (doc) => {
+    setEditingDoctor(doc);
+    setFormData({
+      name: doc.name,
+      email: doc.email,
+      password: "", // Don't show password
+      morningStart: doc.morningStart,
+      morningEnd: doc.morningEnd,
+      eveningStart: doc.eveningStart,
+      eveningEnd: doc.eveningEnd,
+      specialization: doc.specialization
+    });
+    setShowEditModal(true);
+  };
+
+  // --- CALENDAR LOGIC ---
+  const openCalendarModal = (doc) => {
+      setCalendarDoctor(doc);
+      // Fetch unavailable dates for this doctor
+      axios.get(`http://127.0.0.1:5000/api/doctor/unavailable/${doc.id}`)
+        .then(res => setUnavailableDates(res.data))
+        .catch(err => console.error(err));
+      setShowCalendarModal(true);
+  };
+
+  const toggleUnavailable = (dateStr) => {
+      if (!calendarDoctor) return;
+      
+      axios.post('http://127.0.0.1:5000/api/doctor/unavailable', {
+          doctorId: calendarDoctor.id,
+          date: dateStr
+      }).then(res => {
+          if (res.data.action === 'added') {
+              setUnavailableDates([...unavailableDates, dateStr]);
+              toast.info(`Marked unavailable: ${dateStr}`);
+          } else {
+              setUnavailableDates(unavailableDates.filter(d => d !== dateStr));
+              toast.success(`Marked available: ${dateStr}`);
+          }
+      });
+  };
+
+  const modalStyle = {
+    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000
+  };
+
+  const modalContentStyle = {
+    backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '400px',
+    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+  };
+    
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
+  return (
+    <div className="dashboard-container">
+        <Sidebar 
+            userRole="admin" 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            onLogout={handleLogout} 
+        />
+        
+        <div className="main-content">
+            <ToastContainer position="top-right" autoClose={3000} />
+            
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
+                <h1 style={{margin: 0, fontSize: '1.8em'}}>Dashboard Overview</h1>
+                <div style={{display: 'flex', gap: '15px'}}>
+                     {/* Placeholder for top bar stats or profile info */}
+                    <div style={{background: 'white', padding: '10px 20px', borderRadius: '30px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'}}>
+                        📅 {new Date().toDateString()}
+                    </div>
+                </div>
+            </div>
+
+            {activeTab === "doctors" && (
+                <div className="content-box">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h2>My Medical Staff</h2>
+                    <button onClick={() => setShowAddModal(true)}>+ Add New Doctor</button>
+                </div>
+
+                <div className="table-container">
+                    <table className="styled-table">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Specialization</th>
+                            <th>Hours</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {doctors.map((doc) => (
+                            <tr key={doc.id}>
+                            <td>
+                                <strong>{doc.name}</strong><br/>
+                                <small style={{color: '#666'}}>{doc.email}</small>
+                            </td>
+                            <td>{doc.specialization}</td>
+                            <td>
+                                <div style={{fontSize: '0.85em', color: '#555'}}>
+                                <span style={{ display: 'block' }}>🌅 {doc.morningStart} - {doc.morningEnd}</span>
+                                <span style={{ display: 'block' }}>🌇 {doc.eveningStart} - {doc.eveningEnd}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <button 
+                                    className="btn-sm btn-edit"
+                                    onClick={() => openEditModal(doc)} 
+                                >
+                                    Edit
+                                </button>
+                                <button 
+                                    className="btn-sm danger"
+                                    onClick={() => handleDeleteDoctor(doc.id)}
+                                >
+                                    Remove
+                                </button>
+                                <button 
+                                    className="btn-sm btn-info"
+                                    onClick={() => openCalendarModal(doc)}
+                                >
+                                    Manage Leave
+                                </button>
+                            </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            )}
+
+            {activeTab === "appointments" && (
+                <div className="content-box">
+                <h2>Master Appointment Schedule</h2>
+                <div className="table-container">
+                    <table className="styled-table">
+                        <thead>
+                        <tr>
+                            <th>Date / Time</th>
+                            <th>Doctor</th>
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {appointments.map((appt) => (
+                            <tr key={appt._id}>
+                            <td>{appt.date} <br/> <small>{appt.time}</small></td>
+                            <td>{appt.doctorName}</td>
+                            <td>{appt.studentName}</td>
+                            <td>
+                                <span 
+                                    style={{ 
+                                        padding: '4px 8px', 
+                                        borderRadius: '12px',
+                                        fontSize: '0.85em',
+                                        backgroundColor: appt.status === 'Cancelled' ? '#f8d7da' : '#d1e7dd',
+                                        color: appt.status === 'Cancelled' ? '#842029' : '#0f5132',
+                                        fontWeight: '600'
+                                    }}
+                                >
+                                    {appt.status}
+                                </span>
+                            </td>
+                            <td>
+                                <button 
+                                    className="btn-sm danger"
+                                    onClick={() => handleDeleteAppointment(appt._id)}
+                                >
+                                    Delete
+                                </button>
+                            </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            )}
+
+            {/* ADD DOCTOR MODAL */}
+            {showAddModal && (
+                <div style={modalStyle}>
+                <div style={modalContentStyle}>
+                    <h3>Add New Doctor</h3>
+                    <div className="form-group">
+                        <label>Name</label>
+                        <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                        <label>Email</label>
+                        <input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                        <label>Password</label>
+                        <input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                        <label>Specialization</label>
+                        <input value={formData.specialization} onChange={e => setFormData({...formData, specialization: e.target.value})} />
+                    </div>
+                    <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
+                        <div className="form-group" style={{flex: 1}}>
+                            <label>🌅 Morning Start</label>
+                            <input type="time" value={formData.morningStart} onChange={e => setFormData({...formData, morningStart: e.target.value})} />
+                        </div>
+                        <div className="form-group" style={{flex: 1}}>
+                            <label>End</label>
+                            <input type="time" value={formData.morningEnd} onChange={e => setFormData({...formData, morningEnd: e.target.value})} />
+                        </div>
+                    </div>
+                    <div style={{display: 'flex', gap: '10px'}}>
+                        <div className="form-group" style={{flex: 1}}>
+                            <label>🌇 Evening Start</label>
+                            <input type="time" value={formData.eveningStart} onChange={e => setFormData({...formData, eveningStart: e.target.value})} />
+                        </div>
+                        <div className="form-group" style={{flex: 1}}>
+                            <label>End</label>
+                            <input type="time" value={formData.eveningEnd} onChange={e => setFormData({...formData, eveningEnd: e.target.value})} />
+                        </div>
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px'}}>
+                        <button className="secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+                        <button onClick={handleCreateDoctor}>Create Doctor</button>
+                    </div>
+                </div>
+                </div>
+            )}
+
+            {/* EDIT DOCTOR MODAL */}
+            {showEditModal && (
+                <div style={modalStyle}>
+                <div style={modalContentStyle}>
+                    <h3>Edit Doctor</h3>
+                    <div className="form-group">
+                        <label>Name</label>
+                        <input value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                        <label>Specialization</label>
+                        <input value={formData.specialization} onChange={e => setFormData({...formData, specialization: e.target.value})} />
+                    </div>
+                    <div style={{display: 'flex', gap: '10px', marginBottom: '10px'}}>
+                        <div className="form-group" style={{flex: 1}}>
+                            <label>🌅 Morning Start</label>
+                            <input type="time" value={formData.morningStart} onChange={e => setFormData({...formData, morningStart: e.target.value})} />
+                        </div>
+                        <div className="form-group" style={{flex: 1}}>
+                            <label>End</label>
+                            <input type="time" value={formData.morningEnd} onChange={e => setFormData({...formData, morningEnd: e.target.value})} />
+                        </div>
+                    </div>
+                    <div style={{display: 'flex', gap: '10px'}}>
+                        <div className="form-group" style={{flex: 1}}>
+                            <label>🌇 Evening Start</label>
+                            <input type="time" value={formData.eveningStart} onChange={e => setFormData({...formData, eveningStart: e.target.value})} />
+                        </div>
+                        <div className="form-group" style={{flex: 1}}>
+                            <label>End</label>
+                            <input type="time" value={formData.eveningEnd} onChange={e => setFormData({...formData, eveningEnd: e.target.value})} />
+                        </div>
+                    </div>
+                    <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px'}}>
+                        <button className="secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+                        <button onClick={handleUpdateDoctor}>Save Changes</button>
+                    </div>
+                </div>
+                </div>
+            )}
+
+            {/* MANAGE CALENDAR MODAL */}
+            {showCalendarModal && calendarDoctor && (
+                <div style={modalStyle}>
+                <div style={{...modalContentStyle, width: '600px'}}>
+                    <h3>Manage Leave: {calendarDoctor.name}</h3>
+                    <p style={{fontSize: '0.9em', color: '#666'}}>Click a date to toggle unavailability (Red = Off-Duty).</p>
+                    
+                    <CalendarView 
+                        unavailableDates={unavailableDates}
+                        onDateClick={(date) => toggleUnavailable(date)}
+                    />
+                    
+                    <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: '15px'}}>
+                        <button onClick={() => setShowCalendarModal(false)}>Close</button>
+                    </div>
+                </div>
+                </div>
+            )}
+        </div>
+    </div>
+  );
+}
+
+export default AdminPortal;

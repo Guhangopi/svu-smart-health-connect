@@ -1,0 +1,140 @@
+/* Container for the calendar to center it and add some spacing */
+.calendar-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 10px;
+}
+
+/* Base Calendar Styling */
+.react-calendar {
+    width: 280px; /* Reduced width */
+    max-width: 100%;
+    background: white;
+    border: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.125em;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); /* Soft shadow for depth */
+    overflow: hidden; /* For rounded corners */
+}
+
+/* Navigation (Month/Year selector) */
+.react-calendar__navigation {
+    display: flex;
+    height: 50px;
+    margin-bottom: 0;
+    background: #4a90e2; /* Softer Blue Header */
+}
+
+.react-calendar__navigation button {
+    min-width: 44px;
+    background: none;
+    color: white;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+}
+
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.react-calendar__navigation button[disabled] {
+    background-color: #357abd;
+    color: rgba(255,255,255,0.6);
+}
+
+/* Weekday labels (Mon, Tue, etc.) */
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 0.75em;
+    color: #6c757d;
+    background: #f8f9fa;
+    padding: 10px 0;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+    padding: 0.5em;
+}
+
+/* Tiles (Days) */
+.react-calendar__tile {
+    max-width: 100%;
+    padding: 15px 6.6667px;
+    background: #fdfdfd; /* Slight off-white to distinguish from container */
+    text-align: center;
+    line-height: 16px;
+    font-size: 0.9em;
+    border: 1px solid #eee; /* Light border to separate days */
+    transition: all 0.2s ease;
+    border-radius: 6px; /* Rounded tiles */
+    margin: 2px 0; /* Spacing between rows */
+    color: #333; /* Dark text for visibility */
+}
+
+/* HIDE NEIGHBORING MONTH DATES */
+.react-calendar__month-view__days__day--neighboringMonth {
+    visibility: hidden !important;
+    pointer-events: none;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+    background-color: #e6f2ff;
+    color: #4a90e2;
+    border-color: #b3d7ff;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 10; /* Bring above neighbors */
+}
+
+/* Current Day Highlight */
+.react-calendar__tile--now {
+    background: #ffecb3;
+    color: #856404;
+    font-weight: bold;
+}
+
+.react-calendar__tile--now:enabled:hover,
+.react-calendar__tile--now:enabled:focus {
+    background: #ffe69c;
+}
+
+/* UNAVAILABLE / SELECTED DATE STYLING */
+.react-calendar__tile.unavailable-date {
+    background-color: #f8d7da !important; /* Softer Light Red */
+    color: #721c24 !important; /* Dark Red Text */
+    font-weight: bold;
+    position: relative;
+    border: 1px solid #f5c6cb;
+}
+
+.react-calendar__tile.unavailable-date:hover {
+    background-color: #f1b0b7 !important;
+}
+
+/* Optional: Add a small icon or indicator for unavailable dates */
+/* Optional: Add a small icon or indicator for unavailable dates */
+.react-calendar__tile.unavailable-date::after {
+    content: "✕";
+    display: block;
+    font-size: 0.7em;
+    margin-top: 2px;
+    opacity: 0.8;
+}
+
+/* Active/Selected Tile */
+.react-calendar__tile--active {
+    background: #4a90e2;
+    color: white;
+    font-weight: bold; /* Ensure visibility */
+}
+
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus {
+    background: #357abd;
+}
