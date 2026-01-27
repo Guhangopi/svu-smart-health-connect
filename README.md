@@ -7,7 +7,7 @@
 ### For Students
 
 - **Dashboard**: View upcoming appointments and recent prescriptions.
-- **Appointments**: Book, view, and manage appointments with university doctors
+- **Appointments**: Book, view, and manage appointments with university doctors.
 - **Medical Records**: Access digital prescriptions and lab reports.
 - **Profile**: Manage personal details.
 
