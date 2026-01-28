@@ -226,10 +226,14 @@ function AuthPage() {
               </form>
 
               <div className="text-center mt-4 pt-3 border-top">
-                <p className="small text-muted mb-0">Don't have an account?</p>
-                <button onClick={() => toggleMode('register')} className="btn btn-auth-action w-100 mt-2 py-2 rounded-3 fw-bold">
-                  Activate Student Account
-                </button>
+                {loginType === 'student' && (
+                  <>
+                    <p className="small text-muted mb-0">Don't have an account?</p>
+                    <button onClick={() => toggleMode('register')} className="btn btn-auth-action w-100 mt-2 py-2 rounded-3 fw-bold">
+                      Activate Student Account
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}

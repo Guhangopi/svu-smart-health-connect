@@ -42,7 +42,7 @@ function PharmacistPortal() {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
-    navigate("/");
+    window.location.href = "/";
   };
 
   if (!user) return <div style={{padding: '20px'}}>Loading...</div>;

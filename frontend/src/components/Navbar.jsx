@@ -20,7 +20,7 @@ function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("user");
     setUser(null);
-    navigate("/login");
+    window.location.href = "/";
   };
 
   const navStyle = {

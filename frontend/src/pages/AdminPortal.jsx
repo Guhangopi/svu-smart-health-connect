@@ -209,7 +209,7 @@ function AdminPortal() {
     
   const handleLogout = () => {
     localStorage.removeItem("user");
-    navigate("/");
+    window.location.href = "/";
   };
 
   return (

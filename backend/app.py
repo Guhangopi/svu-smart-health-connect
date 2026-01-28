@@ -433,24 +433,32 @@ def upload_university_students():
 # DELETE STUDENT
 @app.route('/api/admin/university-students/<student_id>', methods=['DELETE'])
 def delete_university_student(student_id):
-    # We delete by the custom 'studentId' field, OR we could accept the Mongo '_id'.
-    # For consistency with the list, let's assume the frontend passes the Mongo '_id' for deletion,
-    # OR the studentId. Let's use Mongo ID for deletion if possible, but earlier list returned _id.
+    # 1. FIND the student first to get the correct ID
+    student_to_delete = None
     
-    # Try deleting by _id first
+    # Try by ObjectId
     try:
-        res = university_students_collection.delete_one({"_id": ObjectId(student_id)})
-        if res.deleted_count > 0:
-            return jsonify({"message": "Student removed"}), 200
+        student_to_delete = university_students_collection.find_one({"_id": ObjectId(student_id)})
     except:
         pass
+    
+    # Try by studentId string if not found
+    if not student_to_delete:
+        student_to_delete = university_students_collection.find_one({"studentId": student_id})
         
-    # Fallback: delete by studentId string
-    res = university_students_collection.delete_one({"studentId": student_id})
-    if res.deleted_count > 0:
-        return jsonify({"message": "Student removed"}), 200
-
-    return jsonify({"error": "Student not found"}), 404
+    if not student_to_delete:
+        return jsonify({"error": "Student not found"}), 404
+        
+    # 2. DELETE from Roster
+    university_students_collection.delete_one({"_id": student_to_delete['_id']})
+    
+    # 3. DELETE from Accounts (Login)
+    # The studentId field is the link between the two collections
+    actual_student_id_str = student_to_delete.get('studentId')
+    if actual_student_id_str:
+        student_users_collection.delete_one({"studentId": actual_student_id_str})
+        
+    return jsonify({"message": "Student and associated account removed successfully"}), 200
 
 # --- 7. STUDENT LOGIN ROUTE ---
 @app.route('/api/student/login', methods=['POST'])

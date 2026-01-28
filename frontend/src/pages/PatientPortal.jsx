@@ -136,7 +136,7 @@ function PatientPortal() {
   
   const handleLogout = () => {
     localStorage.removeItem("user");
-    navigate("/");
+    window.location.href = "/";
   };
 
 

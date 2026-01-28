@@ -73,7 +73,7 @@ function DoctorPortal() {
   
   const handleLogout = () => {
     localStorage.removeItem("user");
-    navigate("/");
+    window.location.href = "/";
   };
 
 
