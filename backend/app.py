@@ -1,4 +1,6 @@
 import os
+import csv
+import io
 from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from pymongo import MongoClient
@@ -320,7 +322,7 @@ def student_verify():
     })
 
     if not student:
-        return jsonify({"error": "Student ID or Phone Number not found in university records."}), 404
+        return jsonify({"error": "Student ID or Phone Number not found in university records. Please ask your admin to add your data."}), 404
 
     # Now, check if this student has *already* created a portal account
     account_exists = student_users_collection.find_one({"studentId": student_id})
@@ -356,6 +358,99 @@ def student_create_account():
     })
 
     return jsonify({"message": "Student account created successfully! You can now log in."}), 201
+
+# --- 7. ADMIN - MANAGE UNIVERSITY STUDENTS ---
+
+# GET ALL / ADD SINGLE STUDENT
+@app.route('/api/admin/university-students', methods=['GET', 'POST'])
+def manage_university_students():
+    if request.method == 'GET':
+        students = []
+        for s in university_students_collection.find():
+            s['_id'] = str(s['_id'])
+            students.append(s)
+        return jsonify(students), 200
+
+    if request.method == 'POST':
+        data = request.get_json()
+        student_id = data.get('studentId')
+        
+        if university_students_collection.find_one({"studentId": student_id}):
+            return jsonify({"error": "Student ID already exists"}), 400
+
+        university_students_collection.insert_one({
+            "studentId": student_id,
+            "name": data.get('name'),
+            "registeredPhone": data.get('phone'), # Using 'registeredPhone' to match verification logic
+            "addedAt": datetime.now()
+        })
+        return jsonify({"message": "Student added successfully"}), 201
+
+# BULK UPLOAD STUDENTS (CSV)
+@app.route('/api/admin/university-students/upload', methods=['POST'])
+def upload_university_students():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if file:
+        try:
+            # Read CSV file
+            stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
+            csv_input = csv.DictReader(stream)
+            
+            count = 0
+            errors = []
+            
+            for row in csv_input:
+                # Expecting headers: studentId, name, phone
+                s_id = row.get('studentId')
+                name = row.get('name')
+                phone = row.get('phone')
+
+                if s_id and name and phone:
+                    # Update if exists, Insert if new (Upsert)
+                    university_students_collection.update_one(
+                        {"studentId": s_id},
+                        {"$set": {
+                            "name": name, 
+                            "registeredPhone": phone,
+                            "updatedAt": datetime.now()
+                        }},
+                        upsert=True
+                    )
+                    count += 1
+                else:
+                    errors.append(f"Skipped row: {row}")
+
+            return jsonify({"message": f"Processed {count} students successfully.", "errors": errors}), 200
+        except Exception as e:
+            return jsonify({"error": f"Failed to process CSV: {str(e)}"}), 500
+
+# DELETE STUDENT
+@app.route('/api/admin/university-students/<student_id>', methods=['DELETE'])
+def delete_university_student(student_id):
+    # We delete by the custom 'studentId' field, OR we could accept the Mongo '_id'.
+    # For consistency with the list, let's assume the frontend passes the Mongo '_id' for deletion,
+    # OR the studentId. Let's use Mongo ID for deletion if possible, but earlier list returned _id.
+    
+    # Try deleting by _id first
+    try:
+        res = university_students_collection.delete_one({"_id": ObjectId(student_id)})
+        if res.deleted_count > 0:
+            return jsonify({"message": "Student removed"}), 200
+    except:
+        pass
+        
+    # Fallback: delete by studentId string
+    res = university_students_collection.delete_one({"studentId": student_id})
+    if res.deleted_count > 0:
+        return jsonify({"message": "Student removed"}), 200
+
+    return jsonify({"error": "Student not found"}), 404
 
 # --- 7. STUDENT LOGIN ROUTE ---
 @app.route('/api/student/login', methods=['POST'])

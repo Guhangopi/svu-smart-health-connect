@@ -8,6 +8,7 @@ const Sidebar = ({ userRole, activeTab, setActiveTab, onLogout }) => {
   const menuItems = [
     { label: 'Manage Doctors', tab: 'doctors', role: 'admin', icon: '👨‍⚕️' },
     { label: 'Appointments', tab: 'appointments', role: 'admin', icon: '📅' },
+    { label: 'Manage Students', tab: 'students', role: 'admin', icon: '🎓' },
     { label: 'Dashboard', tab: 'dashboard', role: 'doctor', icon: '📊' },
     { label: 'My Patients', tab: 'patients', role: 'doctor', icon: '🩺' },
     { label: 'Pharmacy Dashboard', tab: 'dashboard', role: 'pharmacist', icon: '💊' },

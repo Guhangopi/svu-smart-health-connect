@@ -13,6 +13,13 @@ function AdminPortal() {
   const [appointments, setAppointments] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  // Student Management State
+  const [students, setStudents] = useState([]);
+  const [showStudentModal, setShowStudentModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [studentForm, setStudentForm] = useState({ studentId: "", name: "", phone: "" });
+  const [fileToUpload, setFileToUpload] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -40,7 +47,14 @@ function AdminPortal() {
     }
     fetchDoctors();
     fetchAppointments();
+    fetchStudents();
   }, [navigate]);
+
+  const fetchStudents = () => {
+    axios.get("http://127.0.0.1:5000/api/admin/university-students")
+      .then((res) => setStudents(res.data))
+      .catch((err) => console.error(err));
+  };
 
   const fetchDoctors = () => {
     axios.get("http://127.0.0.1:5000/api/admin/doctors")
@@ -111,6 +125,49 @@ function AdminPortal() {
       specialization: doc.specialization
     });
     setShowEditModal(true);
+  };
+
+  // --- STUDENT LOGIC ---
+  const handleAddStudent = () => {
+      axios.post("http://127.0.0.1:5000/api/admin/university-students", studentForm)
+        .then(() => {
+            toast.success("Student Added!");
+            setShowStudentModal(false);
+            fetchStudents();
+            setStudentForm({ studentId: "", name: "", phone: "" });
+        })
+        .catch((err) => toast.error(err.response?.data?.error || "Error adding student"));
+  };
+
+  const handleDeleteStudent = (id) => {
+      if (window.confirm("Delete this student record?")) {
+          axios.delete(`http://127.0.0.1:5000/api/admin/university-students/${id}`)
+           .then(() => {
+               toast.success("Student Removed");
+               fetchStudents();
+           })
+           .catch(() => toast.error("Error removing student"));
+      }
+  };
+
+  const handleUploadCSV = () => {
+      if (!fileToUpload) return toast.warning("Please select a file first.");
+      
+      const formData = new FormData();
+      formData.append('file', fileToUpload);
+
+      axios.post("http://127.0.0.1:5000/api/admin/university-students/upload", formData)
+        .then((res) => {
+            toast.success(res.data.message);
+            if (res.data.errors.length > 0) {
+                console.warn("Upload warnings:", res.data.errors);
+                toast.warning(`Check console for ${res.data.errors.length} skipped rows.`);
+            }
+            setShowUploadModal(false);
+            fetchStudents();
+            setFileToUpload(null);
+        })
+        .catch((err) => toast.error("Upload failed. Ensure CSV format is correct."));
   };
 
   // --- CALENDAR LOGIC ---
@@ -286,6 +343,57 @@ function AdminPortal() {
                 </div>
             )}
 
+            {activeTab === "students" && (
+                <div className="content-box">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2>University Student Data</h2>
+                        <div style={{display: 'flex', gap: '10px'}}>
+                            <button className="secondary" onClick={() => setShowUploadModal(true)}>📂 Upload CSV</button>
+                            <button onClick={() => setShowStudentModal(true)}>+ Add Student</button>
+                        </div>
+                    </div>
+    
+                    <div className="table-container">
+                        <table className="styled-table">
+                            <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Phone (Auth)</th>
+                                <th>Added At</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {students.map((stu) => (
+                                <tr key={stu._id}>
+                                <td><strong>{stu.studentId}</strong></td>
+                                <td>{stu.name}</td>
+                                <td>{stu.registeredPhone}</td>
+                                <td>{stu.addedAt ? new Date(stu.addedAt).toLocaleDateString() : '-'}</td>
+                                <td>
+                                    <button 
+                                        className="btn-sm danger"
+                                        onClick={() => handleDeleteStudent(stu.studentId)}
+                                    >
+                                        Remove
+                                    </button>
+                                </td>
+                                </tr>
+                            ))}
+                            {students.length === 0 && (
+                                <tr>
+                                    <td colSpan="5" style={{textAlign: 'center', padding: '20px'}}>
+                                        No students found. Upload a CSV or add manually.
+                                    </td>
+                                </tr>
+                            )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {/* ADD DOCTOR MODAL */}
             {showAddModal && (
                 <div style={modalStyle}>
@@ -394,7 +502,48 @@ function AdminPortal() {
                 </div>
                 </div>
             )}
-        </div>
+
+            {/* ADD STUDENT MODAL */}
+            {showStudentModal && (
+                <div style={modalStyle}>
+                    <div style={modalContentStyle}>
+                        <h3>Add New Student</h3>
+                        <div className="form-group">
+                            <label>Student ID</label>
+                            <input value={studentForm.studentId} onChange={e => setStudentForm({...studentForm, studentId: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Full Name</label>
+                            <input value={studentForm.name} onChange={e => setStudentForm({...studentForm, name: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Phone Number</label>
+                            <input value={studentForm.phone} onChange={e => setStudentForm({...studentForm, phone: e.target.value})} placeholder="Matches verification phone" />
+                        </div>
+                        <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px'}}>
+                            <button className="secondary" onClick={() => setShowStudentModal(false)}>Cancel</button>
+                            <button onClick={handleAddStudent}>Add Student</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* UPLOAD CSV MODAL */}
+            {showUploadModal && (
+                <div style={modalStyle}>
+                    <div style={modalContentStyle}>
+                        <h3>Upload Student Data (CSV)</h3>
+                        <p>File must have headers: <code>studentId,name,phone</code></p>
+                        <input type="file" accept=".csv" onChange={e => setFileToUpload(e.target.files[0])} />
+                        
+                        <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px'}}>
+                            <button className="secondary" onClick={() => setShowUploadModal(false)}>Cancel</button>
+                            <button onClick={handleUploadCSV}>Upload</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+    </div>
     </div>
   );
 }
