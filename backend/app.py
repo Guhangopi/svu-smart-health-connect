@@ -143,6 +143,60 @@ def manage_specific_doctor(doctor_id):
         staff_users_collection.delete_one({"_id": ObjectId(doctor_id)})
         return jsonify({"message": "Doctor removed successfully"}), 200
 
+# 3b. MANAGE OTHER STAFF (Pharmacists, Lab Techs, etc.)
+@app.route('/api/admin/staff', methods=['GET', 'POST'])
+def manage_staff():
+    if request.method == 'GET':
+        staff = []
+        # Find all users where role is NOT 'doctor' and NOT 'admin'
+        for s in staff_users_collection.find({"role": {"$nin": ["doctor", "admin"]}}):
+            staff.append({
+                "id": str(s['_id']),
+                "name": s.get('name'),
+                "email": s.get('email'),
+                "role": s.get('role')
+            })
+        return jsonify(staff), 200
+
+    if request.method == 'POST':
+        data = request.get_json()
+        email = data.get('email')
+        
+        if staff_users_collection.find_one({"email": email}):
+            return jsonify({"error": "Email already exists"}), 400
+
+        hashed_password = bcrypt.generate_password_hash(data.get('password', 'password123')).decode('utf-8')
+        
+        staff_users_collection.insert_one({
+            "email": email,
+            "name": data.get('name'),
+            "password": hashed_password,
+            "role": data.get('role', 'staff') # 'pharmacist', 'lab_tech', etc.
+        })
+        return jsonify({"message": "Staff member created successfully"}), 201
+
+@app.route('/api/admin/staff/<staff_id>', methods=['PUT', 'DELETE'])
+def manage_specific_staff(staff_id):
+    if request.method == 'PUT':
+        data = request.get_json()
+        update_fields = {
+            "name": data.get('name'),
+            "email": data.get('email'),
+            "role": data.get('role')
+        }
+        # Remove None values
+        update_fields = {k: v for k, v in update_fields.items() if v is not None}
+        
+        staff_users_collection.update_one(
+            {"_id": ObjectId(staff_id)},
+            {"$set": update_fields}
+        )
+        return jsonify({"message": "Staff updated successfully"}), 200
+
+    if request.method == 'DELETE':
+        staff_users_collection.delete_one({"_id": ObjectId(staff_id)})
+        return jsonify({"message": "Staff removed successfully"}), 200
+
 # 4. VIEW ALL APPOINTMENTS
 @app.route('/api/admin/appointments', methods=['GET'])
 def get_all_appointments():

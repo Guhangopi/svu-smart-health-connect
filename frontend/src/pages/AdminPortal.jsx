@@ -21,6 +21,13 @@ function AdminPortal() {
   const [studentForm, setStudentForm] = useState({ studentId: "", name: "", phone: "" });
   const [fileToUpload, setFileToUpload] = useState(null);
 
+  // Staff Management State
+  const [staff, setStaff] = useState([]);
+  const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+  const [showEditStaffModal, setShowEditStaffModal] = useState(false);
+  const [staffForm, setStaffForm] = useState({ name: "", email: "", password: "", role: "pharmacist" });
+  const [editingStaff, setEditingStaff] = useState(null);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -48,11 +55,18 @@ function AdminPortal() {
     fetchDoctors();
     fetchAppointments();
     fetchStudents();
+    fetchStaff();
   }, [navigate]);
 
   const fetchStudents = () => {
     axios.get("http://127.0.0.1:5000/api/admin/university-students")
       .then((res) => setStudents(res.data))
+      .catch((err) => console.error(err));
+  };
+
+  const fetchStaff = () => {
+    axios.get("http://127.0.0.1:5000/api/admin/staff")
+      .then((res) => setStaff(res.data))
       .catch((err) => console.error(err));
   };
 
@@ -168,6 +182,51 @@ function AdminPortal() {
             setFileToUpload(null);
         })
         .catch((err) => toast.error("Upload failed. Ensure CSV format is correct."));
+  };
+
+  // --- STAFF MANAGEMENT LOGIC ---
+  const handleCreateStaff = () => {
+      axios.post("http://127.0.0.1:5000/api/admin/staff", staffForm)
+        .then(() => {
+            toast.success("Staff member added!");
+            setShowAddStaffModal(false);
+            fetchStaff();
+            setStaffForm({ name: "", email: "", password: "", role: "pharmacist" });
+        })
+        .catch((err) => toast.error(err.response?.data?.error || "Error adding staff"));
+  };
+
+  const handleUpdateStaff = () => {
+      axios.put(`http://127.0.0.1:5000/api/admin/staff/${editingStaff.id}`, staffForm)
+        .then(() => {
+            toast.info("Staff details updated.");
+            setShowEditStaffModal(false);
+            fetchStaff();
+            setEditingStaff(null);
+        })
+        .catch(() => toast.error("Error updating staff"));
+  };
+
+  const handleDeleteStaff = (id) => {
+      if (window.confirm("Remove this staff member?")) {
+          axios.delete(`http://127.0.0.1:5000/api/admin/staff/${id}`)
+            .then(() => {
+                toast.warn("Staff member removed.");
+                fetchStaff();
+            })
+            .catch(() => toast.error("Error removing staff"));
+      }
+  };
+
+  const openEditStaffModal = (staffMember) => {
+      setEditingStaff(staffMember);
+      setStaffForm({
+          name: staffMember.name,
+          email: staffMember.email,
+          password: "", // Leave blank
+          role: staffMember.role
+      });
+      setShowEditStaffModal(true);
   };
 
   // --- CALENDAR LOGIC ---
@@ -394,6 +453,52 @@ function AdminPortal() {
                 </div>
             )}
 
+            {activeTab === "staff" && (
+                <div className="content-box">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2>Manage Support Staff</h2>
+                        <button onClick={() => setShowAddStaffModal(true)}>+ Add New Staff</button>
+                    </div>
+                    <div className="table-container">
+                        <table className="styled-table">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {staff.map((s) => (
+                                <tr key={s.id}>
+                                <td><strong>{s.name}</strong></td>
+                                <td>{s.email}</td>
+                                <td>
+                                    <span style={{ 
+                                        padding: '4px 8px', borderRadius: '12px', fontSize: '0.85em', fontWeight: '600',
+                                        backgroundColor: '#e7f1ff', color: '#0d6efd'
+                                    }}>
+                                        {s.role.toUpperCase().replace('_', ' ')}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button className="btn-sm btn-edit" onClick={() => openEditStaffModal(s)}>Edit</button>
+                                    <button className="btn-sm danger" onClick={() => handleDeleteStaff(s.id)}>Remove</button>
+                                </td>
+                                </tr>
+                            ))}
+                            {staff.length === 0 && (
+                                <tr>
+                                    <td colSpan="4" style={{textAlign: 'center', padding: '20px'}}>No staff members found.</td>
+                                </tr>
+                            )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {/* ADD DOCTOR MODAL */}
             {showAddModal && (
                 <div style={modalStyle}>
@@ -539,6 +644,77 @@ function AdminPortal() {
                         <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px'}}>
                             <button className="secondary" onClick={() => setShowUploadModal(false)}>Cancel</button>
                             <button onClick={handleUploadCSV}>Upload</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ADD STAFF MODAL */}
+            {showAddStaffModal && (
+                <div style={modalStyle}>
+                    <div style={modalContentStyle}>
+                        <h3>Add New Staff Member</h3>
+                        <div className="form-group">
+                            <label>Name</label>
+                            <input value={staffForm.name} onChange={e => setStaffForm({...staffForm, name: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input value={staffForm.email} onChange={e => setStaffForm({...staffForm, email: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Password</label>
+                            <input type="password" value={staffForm.password} onChange={e => setStaffForm({...staffForm, password: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Role</label>
+                            <select 
+                                value={staffForm.role} 
+                                onChange={e => setStaffForm({...staffForm, role: e.target.value})}
+                                style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}
+                            >
+                                <option value="pharmacist">Pharmacist</option>
+                                <option value="lab_tech">Lab Technician</option>
+                                <option value="nurse">Nurse</option>
+                                <option value="receptionist">Receptionist</option>
+                            </select>
+                        </div>
+                        <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px'}}>
+                            <button className="secondary" onClick={() => setShowAddStaffModal(false)}>Cancel</button>
+                            <button onClick={handleCreateStaff}>Create Staff</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* EDIT STAFF MODAL */}
+            {showEditStaffModal && (
+                <div style={modalStyle}>
+                    <div style={modalContentStyle}>
+                        <h3>Edit Staff Member</h3>
+                        <div className="form-group">
+                            <label>Name</label>
+                            <input value={staffForm.name} onChange={e => setStaffForm({...staffForm, name: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input value={staffForm.email} onChange={e => setStaffForm({...staffForm, email: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>Role</label>
+                            <select 
+                                value={staffForm.role} 
+                                onChange={e => setStaffForm({...staffForm, role: e.target.value})}
+                                style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd'}}
+                            >
+                                <option value="pharmacist">Pharmacist</option>
+                                <option value="lab_tech">Lab Technician</option>
+                                <option value="nurse">Nurse</option>
+                                <option value="receptionist">Receptionist</option>
+                            </select>
+                        </div>
+                        <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px'}}>
+                            <button className="secondary" onClick={() => setShowEditStaffModal(false)}>Cancel</button>
+                            <button onClick={handleUpdateStaff}>Save Changes</button>
                         </div>
                     </div>
                 </div>
