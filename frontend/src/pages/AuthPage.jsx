@@ -4,6 +4,20 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "./AuthPage.css";
 import { API_BASE_URL } from "../config";
 
+const EyeIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+    <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
+    <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8m8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7"/>
+  </svg>
+);
+
+const EyeSlashIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+    <path d="m10.79 12.912-1.614-1.615a3.5 3.5 0 0 1-4.474-4.474l-2.06-2.06C.938 6.278 0 8 0 8s3 5.5 8 5.5a7 7 0 0 0 2.79-.588M5.21 3.088A7 7 0 0 1 8 2.5c5 0 8 5.5 8 5.5s-.939 1.721-2.641 3.238l-2.062-2.062a3.5 3.5 0 0 0-4.474-4.474z"/>
+    <path d="M5.525 7.646a2.5 2.5 0 0 0 2.829 2.829zm4.95.708-2.829-2.83a2.5 2.5 0 0 1 2.829 2.829zm3.171 6-12-12 .708-.708 12 12z"/>
+  </svg>
+);
+
 function AuthPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,6 +38,16 @@ function AuthPage() {
   const [verifyPhone, setVerifyPhone] = useState("");
   const [createPassword, setCreatePassword] = useState("");
   const [verifiedName, setVerifiedName] = useState("");
+
+  // --- FORGOT PASSWORD LOGIC ---
+  const [resetStep, setResetStep] = useState(1);
+  const [resetStudentId, setResetStudentId] = useState("");
+  const [resetPhone, setResetPhone] = useState("");
+  const [resetNewPassword, setResetNewPassword] = useState("");
+  const [resetVerifiedName, setResetVerifiedName] = useState("");
+
+  // --- UI STATE ---
+  const [showPassword, setShowPassword] = useState(false);
 
   // --- FEEDBACK ---
   const [message, setMessage] = useState("");
@@ -58,6 +82,8 @@ function AuthPage() {
     setMessage("");
     // Reset steps if switching
     if (newMode === "register") setActivateStep(1);
+    if (newMode === "forgot") setResetStep(1);
+    setShowPassword(false);
   };
 
   // --- HANDLERS ---
@@ -147,6 +173,43 @@ function AuthPage() {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (loginType === 'staff') {
+        const confirm = window.confirm("Staff passwords must be reset by the Administrator. Contact IT Support at support@svu.edu");
+        return;
+    }
+    toggleMode('forgot');
+  };
+
+  const handleResetVerify = async (e) => {
+    e.preventDefault();
+    setError(""); setMessage("");
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/student/verify-reset`, {
+        studentId: resetStudentId, phone: resetPhone
+      });
+      setResetVerifiedName(response.data.name);
+      setResetStep(2);
+      setMessage(`Identity Verified! Resetting password for ${response.data.name}.`);
+    } catch (err) {
+      setError(err.response?.data?.error || "Verification failed. Details incorrect.");
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError(""); setMessage("");
+    try {
+      await axios.post(`${API_BASE_URL}/api/student/reset-password`, {
+        studentId: resetStudentId, password: resetNewPassword
+      });
+      setResetStep(3); // Success state
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to reset password.");
+    }
+  };
+
   return (
     <div className="auth-page-container">
       <div className={`auth-card-wrapper ${mode === 'register' ? 'show-register' : ''}`}>
@@ -178,7 +241,7 @@ function AuthPage() {
             <p className="text-muted small">
               {mode === 'login' 
                 ? 'Sign in to access your dashboard' 
-                : 'Verify identity to create your account'}
+                : (mode === 'register' ? 'Verify identity to create your account' : 'Reset your password')}
             </p>
           </div>
 
@@ -224,7 +287,22 @@ function AuthPage() {
 
                 <div className="mb-4">
                    <label className="form-label small fw-bold text-secondary">Password</label>
-                   <input type="password" className="form-control" placeholder="••••••" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
+                   <div className="input-group">
+                     <input 
+                        type={showPassword ? "text" : "password"} 
+                        className="form-control" 
+                        placeholder="••••••" 
+                        value={loginPassword} 
+                        onChange={e => setLoginPassword(e.target.value)} 
+                        required 
+                     />
+                     <button className="btn btn-outline-secondary" type="button" onClick={() => setShowPassword(!showPassword)} style={{borderLeft: 'none', borderColor: '#ced4da'}}>
+                        {showPassword ? <EyeSlashIcon/> : <EyeIcon/>}
+                     </button>
+                   </div>
+                   <div className="text-end mt-1">
+                      <a href="#" className="small text-decoration-none text-muted" onClick={handleForgotPassword}>Forgot Password?</a>
+                   </div>
                 </div>
 
                 <button type="submit" className="btn btn-primary w-100 py-2 rounded-3 fw-bold shadow-sm">
@@ -278,7 +356,19 @@ function AuthPage() {
                    </div>
                    <div className="mb-4">
                      <label className="form-label small fw-bold text-secondary">New Password</label>
-                     <input type="password" className="form-control" placeholder="Create a strong password" value={createPassword} onChange={e => setCreatePassword(e.target.value)} required />
+                     <div className="input-group">
+                        <input 
+                            type={showPassword ? "text" : "password"} 
+                            className="form-control" 
+                            placeholder="Create a strong password" 
+                            value={createPassword} 
+                            onChange={e => setCreatePassword(e.target.value)} 
+                            required 
+                        />
+                        <button className="btn btn-outline-secondary" type="button" onClick={() => setShowPassword(!showPassword)} style={{borderLeft: 'none', borderColor: '#ced4da'}}>
+                            {showPassword ? <EyeSlashIcon/> : <EyeIcon/>}
+                        </button>
+                     </div>
                    </div>
                    <button type="submit" className="btn btn-success w-100 py-2 rounded-3 fw-bold">Create Account</button>
                 </form>
@@ -298,11 +388,75 @@ function AuthPage() {
               {activateStep < 3 && (
                 <div className="text-center mt-4 pt-3 border-top">
                    <p className="small text-muted mb-0">Already have an account?</p>
-                   <button onClick={() => toggleMode('login')} className="btn btn-auth-action w-100 mt-2 py-2 rounded-3 fw-bold">
-                     Back to Sign In
-                   </button>
+                   <button onClick={() => toggleMode('login')} className="btn btn-link p-0 fw-bold">Login here</button>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* --- FORGOT PASSWORD FORM --- */}
+          {mode === 'forgot' && (
+            <div className="animate-fade-in">
+              <div style={{textAlign: 'center', marginBottom: '20px'}}>
+                  {resetStep < 3 && <h5 className="text-primary">Help with your password</h5>}
+              </div>
+
+              {resetStep === 1 && (
+                <form onSubmit={handleResetVerify}>
+                   <div className="alert alert-soft-info p-2 small mb-3">
+                      Enter your Student ID and registered phone number to verify it's you.
+                   </div>
+                   <div className="mb-3">
+                     <label className="form-label small fw-bold text-secondary">Student ID</label>
+                     <input type="text" className="form-control" placeholder="1001" value={resetStudentId} onChange={e => setResetStudentId(e.target.value)} required />
+                   </div>
+                   <div className="mb-4">
+                     <label className="form-label small fw-bold text-secondary">Registered Phone</label>
+                     <input type="text" className="form-control" placeholder="9876543210" value={resetPhone} onChange={e => setResetPhone(e.target.value)} required />
+                   </div>
+                   <div className="d-grid gap-2">
+                       <button type="submit" className="btn btn-primary fw-bold">Verify Identity</button>
+                       <button type="button" onClick={() => toggleMode('login')} className="btn btn-light text-muted">Back to Login</button>
+                   </div>
+                </form>
+              )}
+
+              {resetStep === 2 && (
+                <form onSubmit={handleResetPassword}>
+                   <div className="text-center mb-3">
+                      <span className="badge bg-soft-success text-success">Verified: {resetVerifiedName}</span>
+                   </div>
+                   <div className="mb-4">
+                     <label className="form-label small fw-bold text-secondary">New Password</label>
+                     <div className="input-group">
+                        <input 
+                            type={showPassword ? "text" : "password"} 
+                            className="form-control" 
+                            placeholder="Type new password" 
+                            value={resetNewPassword} 
+                            onChange={e => setResetNewPassword(e.target.value)} 
+                            required 
+                        />
+                        <button className="btn btn-outline-secondary" type="button" onClick={() => setShowPassword(!showPassword)} style={{borderLeft: 'none', borderColor: '#ced4da'}}>
+                            {showPassword ? <EyeSlashIcon/> : <EyeIcon/>}
+                        </button>
+                     </div>
+                   </div>
+                   <button type="submit" className="btn btn-success w-100 py-2 rounded-3 fw-bold">Update Password</button>
+                </form>
+              )}
+
+              {resetStep === 3 && (
+                 <div className="text-center py-4">
+                    <div className="mb-3 display-4 text-success">✅</div>
+                    <h4 className="fw-bold text-dark">Password Updated!</h4>
+                    <p className="text-muted small">You can now login with your new password.</p>
+                    <button onClick={() => toggleMode('login')} className="btn btn-primary w-100 rounded-3">
+                       Back to Login
+                    </button>
+                 </div>
+              )}
+
 
             </div>
           )}

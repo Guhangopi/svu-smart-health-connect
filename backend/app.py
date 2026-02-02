@@ -598,6 +598,51 @@ def student_login():
     else:
         return jsonify({"error": "Invalid Student ID or Password"}), 401
     
+# --- 8. STUDENT PASSWORD RESET ---
+@app.route('/api/student/verify-reset', methods=['POST'])
+def student_verify_reset():
+    data = request.get_json()
+    student_id = data.get('studentId')
+    phone = data.get('phone')
+
+    # 1. Check University Records (Identity)
+    student = university_students_collection.find_one({
+        "studentId": student_id,
+        "registeredPhone": phone
+    })
+    
+    if not student:
+        return jsonify({"error": "Identity verification failed. Invalid ID or Phone."}), 404
+
+    # 2. Check if Account Exists (Logic: Can't reset what doesn't exist)
+    account = student_users_collection.find_one({"studentId": student_id})
+    if not account:
+        return jsonify({"error": "Account not found. Please 'Activate Student Account' first."}), 404
+
+    return jsonify({
+        "message": "Identity verified",
+        "studentId": student_id,
+        "name": student['name']
+    }), 200
+
+@app.route('/api/student/reset-password', methods=['POST'])
+def student_reset_password():
+    data = request.get_json()
+    student_id = data.get('studentId')
+    password = data.get('password')
+
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+    
+    result = student_users_collection.update_one(
+        {"studentId": student_id},
+        {"$set": {"password": hashed_password}}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Account not found."}), 404
+    
+    return jsonify({"message": "Password reset successfully. You can now login."}), 200
+    
     # --- 8. APPOINTMENT ROUTES ---
 
 # Get a list of all Doctors (for the dropdown menu)
