@@ -8,6 +8,16 @@ const HERO_IMAGE = "/svu_admin.jpg";
 function HomePage() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user'));
+  const [doctors, setDoctors] = React.useState([]);
+
+  React.useEffect(() => {
+    fetch('/api/doctors')
+      .then(res => res.json())
+      .then(data => {
+        setDoctors(data);
+      })
+      .catch(err => console.error("Failed to load doctors", err));
+  }, []);
 
   const handleDashboardClick = () => {
     if (!user) {
@@ -169,84 +179,40 @@ function HomePage() {
                </div>
             </div>
 
-            <div className="row g-4">
-               {/* Doctor 1 */}
-               <div className="col-md-4 animate-slide-up" style={{animationDelay: '0.1s'}}>
-                  <div className="team-card bg-white rounded-4 overflow-hidden shadow-sm h-100 position-relative group">
-                     <div className="team-img-wrapper overflow-hidden bg-light position-relative" style={{height: '240px'}}>
-                        <img src="/doc1.jpg" alt="Dr. Anjali" className="w-100 h-100 object-fit-cover team-img-zoom" 
-                             onError={(e) => {e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=Anjali+Rao&background=0ca678&color=fff&size=200';}} />
-                        <div className="team-overlay d-flex align-items-center justify-content-center gap-3">
-                           <span className="social-mini-btn">📅</span>
-                           <span className="social-mini-btn">✉️</span>
+            <div className="row g-4 justify-content-center">
+               {doctors.length > 0 ? (
+                 doctors.slice(0, 3).map((doctor, index) => (
+                    <div key={doctor.id} className="col-md-4 animate-slide-up" style={{animationDelay: `${0.1 * (index + 1)}s`}}>
+                        <div className="team-card bg-white rounded-4 overflow-hidden shadow-sm h-100 position-relative group">
+                            <div className="team-img-wrapper overflow-hidden bg-light position-relative" style={{height: '240px'}}>
+                                <img 
+                                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.name)}&background=random&color=fff&size=200`} 
+                                    alt={doctor.name} 
+                                    className="w-100 h-100 object-fit-cover team-img-zoom" 
+                                />
+                                <div className="team-overlay d-flex align-items-center justify-content-center gap-3">
+                                    <span className="social-mini-btn">📅</span>
+                                    <span className="social-mini-btn">✉️</span>
+                                </div>
+                            </div>
+                            <div className="p-4 border-top">
+                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h5 className="fw-bold text-dark mb-1">{doctor.name}</h5>
+                                        <span className="badge bg-green-light text-success rounded-pill px-3">{doctor.specialization}</span>
+                                    </div>
+                                </div>
+                                <p className="text-muted small mb-4 line-clamp-2">Providing expert healthcare services to our students.</p>
+                                <button onClick={handleDashboardClick} className="btn btn-filled-green w-100 rounded-pill py-2 text-uppercase fw-bold" style={{fontSize: '0.8rem'}}>
+                                    Book Appointment
+                                </button>
+                            </div>
                         </div>
-                     </div>
-                     <div className="p-4 border-top">
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                           <div>
-                              <h5 className="fw-bold text-dark mb-1">Dr. Anjali Rao</h5>
-                              <span className="badge bg-green-light text-success rounded-pill px-3">General Physician</span>
-                           </div>
-                        </div>
-                        <p className="text-muted small mb-4 line-clamp-2">Expert in student health and preventive care with 10+ years experience.</p>
-                        <button onClick={handleDashboardClick} className="btn btn-filled-green w-100 rounded-pill py-2 text-uppercase fw-bold" style={{fontSize: '0.8rem'}}>
-                           Book Appointment
-                        </button>
-                     </div>
-                  </div>
-               </div>
-
-               {/* Doctor 2 */}
-               <div className="col-md-4 animate-slide-up" style={{animationDelay: '0.2s'}}>
-                  <div className="team-card bg-white rounded-4 overflow-hidden shadow-sm h-100 position-relative group">
-                     <div className="team-img-wrapper overflow-hidden bg-light position-relative" style={{height: '240px'}}>
-                        <img src="/doc2.jpg" alt="Dr. Rajesh" className="w-100 h-100 object-fit-cover team-img-zoom"
-                              onError={(e) => {e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=Rajesh+Kumar&background=3b5bdb&color=fff&size=200';}} />
-                        <div className="team-overlay d-flex align-items-center justify-content-center gap-3">
-                           <span className="social-mini-btn">📅</span>
-                           <span className="social-mini-btn">✉️</span>
-                        </div>
-                     </div>
-                     <div className="p-4 border-top">
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                           <div>
-                              <h5 className="fw-bold text-dark mb-1">Dr. Rajesh Kumar</h5>
-                              <span className="badge bg-blue-light text-primary rounded-pill px-3">Cardiologist</span>
-                           </div>
-                        </div>
-                        <p className="text-muted small mb-4 line-clamp-2">Specialized in sports medicine and cardiovascular health.</p>
-                        <button onClick={handleDashboardClick} className="btn btn-filled-blue w-100 rounded-pill py-2 text-uppercase fw-bold" style={{fontSize: '0.8rem'}}>
-                           Book Appointment
-                        </button>
-                     </div>
-                  </div>
-               </div>
-
-               {/* Doctor 3 */}
-               <div className="col-md-4 animate-slide-up" style={{animationDelay: '0.3s'}}>
-                  <div className="team-card bg-white rounded-4 overflow-hidden shadow-sm h-100 position-relative group">
-                     <div className="team-img-wrapper overflow-hidden bg-light position-relative" style={{height: '240px'}}>
-                        <img src="/doc3.jpg" alt="Dr. Sarah" className="w-100 h-100 object-fit-cover team-img-zoom"
-                              onError={(e) => {e.target.onerror = null; e.target.src = 'https://ui-avatars.com/api/?name=Sarah+Lee&background=f08c00&color=fff&size=200';}} />
-                        <div className="team-overlay d-flex align-items-center justify-content-center gap-3">
-                           <span className="social-mini-btn">📅</span>
-                           <span className="social-mini-btn">✉️</span>
-                        </div>
-                     </div>
-                     <div className="p-4 border-top">
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                           <div>
-                              <h5 className="fw-bold text-dark mb-1">Dr. Sarah Lee</h5>
-                              <span className="badge bg-orange-light text-warning rounded-pill px-3">Psychiatrist</span>
-                           </div>
-                        </div>
-                        <p className="text-muted small mb-4 line-clamp-2">Providing mental health support and counseling services.</p>
-                        <button onClick={handleDashboardClick} className="btn btn-filled-orange w-100 rounded-pill py-2 text-uppercase fw-bold" style={{fontSize: '0.8rem'}}>
-                           Book Appointment
-                        </button>
-                     </div>
-                  </div>
-               </div>
+                    </div>
+                 ))
+               ) : (
+                 <div className="text-center text-muted">Loading specialists...</div>
+               )}
             </div>
          </div>
       </section>

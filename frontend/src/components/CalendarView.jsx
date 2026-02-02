@@ -27,6 +27,7 @@ const CalendarView = ({ unavailableDates, onDateClick }) => {
   return (
     <div className="calendar-container">
       <Calendar
+        minDate={new Date()}
         onClickDay={(date) => {
             const dateStr = formatDateLocal(date);
             onDateClick(dateStr);

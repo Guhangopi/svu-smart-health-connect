@@ -7,6 +7,7 @@ import PrescriptionForm from "../components/PrescriptionForm";
 import CalendarView from "../components/CalendarView";
 import Sidebar from "../components/Sidebar";
 import MedicalRecordsList from "../components/MedicalRecordsList";
+import LabRequestModal from "../components/LabRequestModal";
 
 function DoctorPortal() {
   const navigate = useNavigate();
@@ -20,6 +21,8 @@ function DoctorPortal() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [daySlots, setDaySlots] = useState([]); // Available slots for selected date
   const [viewingRecordsStudentId, setViewingRecordsStudentId] = useState(null);
+  const [showLabModal, setShowLabModal] = useState(false);
+  const [stats, setStats] = useState({ queue: 0, completedToday: 0, totalPatients: 0 });
 
   useEffect(() => {
     // 1. Get user from storage
@@ -55,6 +58,11 @@ function DoctorPortal() {
     axios.get(`http://127.0.0.1:5000/api/doctor/unavailable/${parsedUser.id}`)
         .then(res => setUnavailableDates(res.data))
         .catch(err => console.error("Error fetching unavailable dates:", err));
+    
+    // 5. FETCH STATS
+    axios.get(`http://127.0.0.1:5000/api/doctor/stats/${parsedUser.id}`)
+        .then(res => setStats(res.data))
+        .catch(err => console.error("Error fetching stats:", err));
         
   }, [navigate]);
 
@@ -94,7 +102,7 @@ function DoctorPortal() {
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
                 <div>
                    <h1 style={{margin: 0, fontSize: '1.8em'}}>Doctor Dashboard</h1>
-                   <p style={{margin: '5px 0 0', color: '#666'}}>Welcome back, Dr. {user.name}</p>
+                   <p style={{margin: '5px 0 0', color: '#666'}}>Welcome back, {user.name}</p>
                 </div>
                 <div style={{background: 'white', padding: '10px 20px', borderRadius: '30px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)'}}>
                     📅 {new Date().toDateString()}
@@ -103,6 +111,31 @@ function DoctorPortal() {
 
             {activeTab === 'dashboard' && (
                 <>
+                {/* --- STATS CARDS --- */}
+                <div style={{display: 'flex', gap: '20px', marginBottom: '30px'}}>
+                    <div className="stat-card yellow">
+                        <div style={{fontSize: '2.5em', marginRight: '20px'}}>👥</div>
+                        <div>
+                            <h2 style={{margin: 0, fontSize: '2em'}}>{stats.queue}</h2>
+                            <p style={{margin: 0, color: '#666'}}>Patients Query</p>
+                        </div>
+                    </div>
+                    <div className="stat-card green">
+                        <div style={{fontSize: '2.5em', marginRight: '20px'}}>✅</div>
+                        <div>
+                            <h2 style={{margin: 0, fontSize: '2em'}}>{stats.completedToday}</h2>
+                            <p style={{margin: 0, color: '#666'}}>Completed Today</p>
+                        </div>
+                    </div>
+                    <div className="stat-card" style={{borderLeftColor: '#007bff'}}>
+                        <div style={{fontSize: '2.5em', marginRight: '20px'}}>👨‍⚕️</div>
+                        <div>
+                            <h2 style={{margin: 0, fontSize: '2em'}}>{stats.totalPatients}</h2>
+                            <p style={{margin: 0, color: '#666'}}>Total Patients</p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* --- CALENDAR SECTION --- */}
                 <div className="content-box">
                     <h3>Manage Availability & Schedule</h3>
@@ -220,10 +253,20 @@ function DoctorPortal() {
                                         </button>
                                         <button 
                                             className="btn-sm"
-                                            style={{ backgroundColor: '#28a745' }}
+                                            style={{ backgroundColor: '#28a745', marginRight: '5px' }}
                                             onClick={() => setSelectedAppointment(appt)}
                                         >
                                             Prescribe
+                                        </button>
+                                        <button 
+                                            className="btn-sm"
+                                            style={{ backgroundColor: '#6f42c1', color: 'white' }}
+                                            onClick={() => {
+                                                setSelectedAppointment(appt);
+                                                setShowLabModal(true);
+                                            }}
+                                        >
+                                            🧪 Lab
                                         </button>
                                     </>
                                     )}
@@ -282,7 +325,7 @@ function DoctorPortal() {
             )}
 
             {/* --- PRESCRIPTION FORM POPUP/SECTION --- */}
-            {selectedAppointment && (
+            {selectedAppointment && !showLabModal && (
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 3000 }}>
                 <div style={{ background: 'white', padding: '20px', borderRadius: '8px', width: '90%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
@@ -302,6 +345,25 @@ function DoctorPortal() {
                     />
                 </div>
                 </div>
+            )}
+
+            {/* --- LAB REQUEST MODAL --- */}
+            {showLabModal && selectedAppointment && (
+                <LabRequestModal
+                    studentId={selectedAppointment.studentId}
+                    studentName={selectedAppointment.studentName}
+                    doctorId={user.id}
+                    doctorName={user.name}
+                    onSuccess={() => {
+                        toast.success("Lab Request Sent!");
+                        setShowLabModal(false);
+                        setSelectedAppointment(null);
+                    }}
+                    onCancel={() => {
+                        setShowLabModal(false);
+                        setSelectedAppointment(null);
+                    }}
+                />
             )}
         </div>
     </div>

@@ -6,6 +6,7 @@ const Sidebar = ({ userRole, activeTab, setActiveTab, onLogout }) => {
   const navigate = useNavigate();
 
   const menuItems = [
+    { label: 'Admin Hub', tab: 'hub', role: 'admin', icon: '⚡' },
     { label: 'Manage Doctors', tab: 'doctors', role: 'admin', icon: '👨‍⚕️' },
     { label: 'Appointments', tab: 'appointments', role: 'admin', icon: '📅' },
     { label: 'Manage Students', tab: 'students', role: 'admin', icon: '🎓' },
@@ -13,18 +14,24 @@ const Sidebar = ({ userRole, activeTab, setActiveTab, onLogout }) => {
     { label: 'Dashboard', tab: 'dashboard', role: 'doctor', icon: '📊' },
     { label: 'My Patients', tab: 'patients', role: 'doctor', icon: '🩺' },
     { label: 'Pharmacy Dashboard', tab: 'dashboard', role: 'pharmacist', icon: '💊' },
-    { label: 'Upload Reports', tab: 'upload', role: 'lab_tech', icon: '🧪' },
+    { label: 'Lab Tech Dashboard', tab: 'dashboard', role: 'lab_tech', icon: '🧪' },
     { label: 'Book Appointment', tab: 'book', role: 'student', icon: '➕' },
     { label: 'My History', tab: 'history', role: 'student', icon: '📅' },
     { label: 'Prescriptions', tab: 'prescriptions', role: 'student', icon: '📄' },
     { label: 'Medical Records', tab: 'records', role: 'student', icon: '📂' },
   ];
 
+  const formatRole = (role) => {
+    if (!role) return 'USER';
+    if (role === 'lab_tech') return 'Lab Technician'; // Special case
+    return role.toUpperCase();
+  };
+
   return (
     <div className="sidebar">
       <div className="sidebar-header">
         <h2>SmartHealth</h2>
-        <span className="badge">{userRole ? userRole.toUpperCase() : 'USER'}</span>
+        <span className="badge">{formatRole(userRole)}</span>
       </div>
 
       <nav className="sidebar-nav">

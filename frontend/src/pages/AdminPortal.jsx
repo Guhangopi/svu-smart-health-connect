@@ -4,11 +4,13 @@ import axios from "axios";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import CalendarView from "../components/CalendarView";
+import "../styles/AdminPortal.css";
 import Sidebar from "../components/Sidebar";
 
 function AdminPortal() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("doctors");
+  const [activeTab, setActiveTab] = useState("hub");
+  const [stats, setStats] = useState({ total_users: 0, pending_bookings: 0, total_doctors: 0 });
   const [doctors, setDoctors] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -56,7 +58,14 @@ function AdminPortal() {
     fetchAppointments();
     fetchStudents();
     fetchStaff();
+    fetchStats();
   }, [navigate]);
+
+  const fetchStats = () => {
+    axios.get("http://127.0.0.1:5000/api/admin/stats")
+      .then((res) => setStats(res.data))
+      .catch((err) => console.error(err));
+  };
 
   const fetchStudents = () => {
     axios.get("http://127.0.0.1:5000/api/admin/university-students")
@@ -293,6 +302,98 @@ function AdminPortal() {
                 </div>
             </div>
 
+            {activeTab === "hub" && (
+                <div style={{animation: 'fadeIn 0.5s'}}>
+                    <div style={{marginBottom: '30px'}}>
+                        <h2 style={{fontSize: '2em', marginBottom: '10px'}}>Dashboard</h2>
+                        <p style={{color: '#666'}}>Welcome back, SVU! Here's what's happening today.</p>
+                    </div>
+
+
+
+                    <div style={{display: 'flex', gap: '20px', flexWrap: 'wrap'}}>
+                        {/* TOTAL USERS CARD */}
+                        <div className="dashboard-card" style={{
+                            flex: 1, minWidth: '280px', background: 'white', padding: '25px', 
+                            borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb',
+                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '180px',
+                            cursor: 'default'
+                        }}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                                <div style={{
+                                    background: '#f3e8ff', width: '50px', height: '50px', borderRadius: '12px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5em',
+                                    color: '#6b21a8'
+                                }}>👥</div>
+                                <span style={{fontSize: '3em', fontWeight: '800', color: '#1f2937'}}>{stats.total_users}</span>
+                            </div>
+                            <div>
+                                <h4 style={{margin: '0 0 10px 0', color: '#6b7280', fontSize: '0.9em', letterSpacing: '1px', textTransform: 'uppercase'}}>Total Users</h4>
+                                <span 
+                                    className="view-details-link"
+                                    style={{color: '#0d6efd', fontSize: '0.95em', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px'}}
+                                    onClick={() => setActiveTab('students')}
+                                >
+                                    View Students &rarr;
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* PENDING APPOINTMENTS CARD */}
+                        <div className="dashboard-card" style={{
+                            flex: 1, minWidth: '280px', background: 'white', padding: '25px', 
+                            borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb',
+                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '180px'
+                        }}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                                <div style={{
+                                    background: '#fff7ed', width: '50px', height: '50px', borderRadius: '12px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5em',
+                                    color: '#ea580c'
+                                }}>🕒</div>
+                                <span style={{fontSize: '3em', fontWeight: '800', color: '#1f2937'}}>{stats.pending_bookings}</span>
+                            </div>
+                            <div>
+                                <h4 style={{margin: '0 0 10px 0', color: '#6b7280', fontSize: '0.9em', letterSpacing: '1px', textTransform: 'uppercase'}}>Pending Appointments</h4>
+                                <span 
+                                    className="view-details-link"
+                                    style={{color: '#0d6efd', fontSize: '0.95em', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px'}}
+                                    onClick={() => setActiveTab('appointments')}
+                                >
+                                    Resolve Now &rarr;
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* TOTAL DOCTORS CARD */}
+                        <div className="dashboard-card" style={{
+                            flex: 1, minWidth: '280px', background: 'white', padding: '25px', 
+                            borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb',
+                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '180px'
+                        }}>
+                            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                                <div style={{
+                                    background: '#eff6ff', width: '50px', height: '50px', borderRadius: '12px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5em',
+                                    color: '#2563eb'
+                                }}>🩺</div>
+                                <span style={{fontSize: '3em', fontWeight: '800', color: '#1f2937'}}>{stats.total_doctors}</span>
+                            </div>
+                            <div>
+                                <h4 style={{margin: '0 0 10px 0', color: '#6b7280', fontSize: '0.9em', letterSpacing: '1px', textTransform: 'uppercase'}}>Total Doctors</h4>
+                                <span 
+                                    className="view-details-link"
+                                    style={{color: '#0d6efd', fontSize: '0.95em', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px'}}
+                                    onClick={() => setActiveTab('doctors')}
+                                >
+                                    View Doctors &rarr;
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {activeTab === "doctors" && (
                 <div className="content-box">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -325,24 +426,26 @@ function AdminPortal() {
                                 </div>
                             </td>
                             <td>
-                                <button 
-                                    className="btn-sm btn-edit"
-                                    onClick={() => openEditModal(doc)} 
-                                >
-                                    Edit
-                                </button>
-                                <button 
-                                    className="btn-sm danger"
-                                    onClick={() => handleDeleteDoctor(doc.id)}
-                                >
-                                    Remove
-                                </button>
-                                <button 
-                                    className="btn-sm btn-info"
-                                    onClick={() => openCalendarModal(doc)}
-                                >
-                                    Manage Leave
-                                </button>
+                                <div className="action-buttons">
+                                    <button 
+                                        className="btn-compact btn-edit"
+                                        onClick={() => openEditModal(doc)} 
+                                    >
+                                        Edit
+                                    </button>
+                                    <button 
+                                        className="btn-compact danger"
+                                        onClick={() => handleDeleteDoctor(doc.id)}
+                                    >
+                                        Remove
+                                    </button>
+                                    <button 
+                                        className="btn-compact btn-info"
+                                        onClick={() => openCalendarModal(doc)}
+                                    >
+                                        Manage Leave
+                                    </button>
+                                </div>
                             </td>
                             </tr>
                         ))}
@@ -387,12 +490,14 @@ function AdminPortal() {
                                 </span>
                             </td>
                             <td>
-                                <button 
-                                    className="btn-sm danger"
-                                    onClick={() => handleDeleteAppointment(appt._id)}
-                                >
-                                    Delete
-                                </button>
+                                <div className="action-buttons">
+                                    <button 
+                                        className="btn-compact danger"
+                                        onClick={() => handleDeleteAppointment(appt._id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </td>
                             </tr>
                         ))}
@@ -431,12 +536,14 @@ function AdminPortal() {
                                 <td>{stu.registeredPhone}</td>
                                 <td>{stu.addedAt ? new Date(stu.addedAt).toLocaleDateString() : '-'}</td>
                                 <td>
-                                    <button 
-                                        className="btn-sm danger"
-                                        onClick={() => handleDeleteStudent(stu.studentId)}
-                                    >
-                                        Remove
-                                    </button>
+                                    <div className="action-buttons">
+                                        <button 
+                                            className="btn-compact danger"
+                                            onClick={() => handleDeleteStudent(stu.studentId)}
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
                                 </td>
                                 </tr>
                             ))}
@@ -483,8 +590,10 @@ function AdminPortal() {
                                     </span>
                                 </td>
                                 <td>
-                                    <button className="btn-sm btn-edit" onClick={() => openEditStaffModal(s)}>Edit</button>
-                                    <button className="btn-sm danger" onClick={() => handleDeleteStaff(s.id)}>Remove</button>
+                                    <div className="action-buttons">
+                                        <button className="btn-compact btn-edit" onClick={() => openEditStaffModal(s)}>Edit</button>
+                                        <button className="btn-compact danger" onClick={() => handleDeleteStaff(s.id)}>Remove</button>
+                                    </div>
                                 </td>
                                 </tr>
                             ))}

@@ -218,15 +218,20 @@ function PatientPortal() {
                                                         type="button"
                                                         onClick={() => setSelectedTime(slot)}
                                                         style={{
-                                                            backgroundColor: selectedTime === slot ? "var(--primary-color)" : "#fff",
-                                                            color: selectedTime === slot ? "white" : "#333",
-                                                            border: selectedTime === slot ? "none" : "1px solid #ddd",
-                                                            borderRadius: '8px',
-                                                            padding: "8px 16px",
+                                                            padding: '6px 12px', 
+                                                            borderRadius: '20px', 
+                                                            fontSize: '0.85em', 
+                                                            fontWeight: 'bold',
                                                             cursor: "pointer",
+                                                            border: "none",
+                                                            outline: "none",
                                                             transition: 'all 0.2s',
-                                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                                                            fontWeight: selectedTime === slot ? 'bold' : 'normal'
+                                                            background: selectedTime === slot 
+                                                                ? "linear-gradient(90deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05))" 
+                                                                : "white",
+                                                            color: selectedTime === slot ? "#2563eb" : "#64748b",
+                                                            border: selectedTime === slot ? "1px solid rgba(59, 130, 246, 0.4)" : "1px solid #e2e8f0",
+                                                            boxShadow: selectedTime === slot ? '0 2px 5px rgba(59, 130, 246, 0.15)' : 'none'
                                                         }}
                                                         >
                                                         {slot}

@@ -5,6 +5,7 @@ import axios from 'axios';
 const PrescriptionForm = ({ studentId, studentName, doctorId, doctorName, onSuccess, onCancel }) => {
     const [diagnosis, setDiagnosis] = useState('');
     const [notes, setNotes] = useState('');
+    const [referToPharmacist, setReferToPharmacist] = useState(true); // Default to true
     const [medications, setMedications] = useState([
         { name: '', dosage: '', frequency: '', duration: '' }
     ]);
@@ -45,12 +46,13 @@ const PrescriptionForm = ({ studentId, studentName, doctorId, doctorName, onSucc
             date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
             diagnosis,
             notes,
-            medications
+            medications,
+            referToPharmacist // Forward status
         };
 
         try {
             await axios.post('/api/prescriptions', payload);
-            alert('Prescription saved successfully!');
+            alert(`Prescription saved! ${referToPharmacist ? '(Sent to Pharmacy)' : ''}`);
             if(onSuccess) onSuccess();
         } catch (err) {
             console.error(err);
@@ -139,6 +141,19 @@ const PrescriptionForm = ({ studentId, studentName, doctorId, doctorName, onSucc
                 </div>
 
                 <div className="flex-center" style={{ justifyContent: 'flex-start' }}>
+                    <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                        <input 
+                            type="checkbox" 
+                            id="referToPharm" 
+                            checked={referToPharmacist} 
+                            onChange={e => setReferToPharmacist(e.target.checked)} 
+                            style={{width: 'auto', margin: 0}}
+                        />
+                        <label htmlFor="referToPharm" style={{margin: 0, fontWeight: 'bold', color: '#28a745'}}>
+                            Forward to Pharmacy?
+                        </label>
+                    </div>
+
                     <button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? 'Saving...' : 'Save Prescription'}
                     </button>

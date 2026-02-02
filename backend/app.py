@@ -41,17 +41,29 @@ if not uri:
 
 
 try:
-    client = MongoClient(uri)
+    client = MongoClient(uri, serverSelectionTimeoutMS=5000) # Add timeout
     client.admin.command('ping')
-    print("✅ SUCCESS! Connected to MongoDB.")
+    print("[SUCCESS] Connected to MongoDB.")
+    db = client.smarthealthconnect
 except Exception as e:
-    print(f"❌ CONNECTION FAILED: {e}")
+    print(f"[CONNECTION FAILED] {e}")
+    client = None
+    db = None
 
-db = client.smarthealthconnect
+if db is None:
+    print("CRITICAL: Failed to connect to MongoDB. Exiting.")
+    exit(1)
+
 patients_collection = db.patients
 # NEW COLLECTION for doctors/staff:
 staff_users_collection = db.staff_users
-
+university_students_collection = db.university_students
+student_users_collection = db.student_users
+appointments_collection = db.appointments
+appointments_collection = db.appointments
+lab_reports_collection = db.lab_reports
+lab_requests_collection = db.lab_requests # NEW: For Doctor -> Lab Tech requests
+prescriptions_collection = db.prescriptions
 
 # --- ADMIN API ROUTES ---
 
@@ -204,6 +216,22 @@ def get_all_appointments():
     # Sort by Date DESC
     for appt in appointments_collection.find().sort([("date", -1), ("time", -1)]):
         appt['_id'] = str(appt['_id'])
+        
+        # Update Doctor Name dynamically
+        if 'doctorId' in appt:
+            try:
+                doctor = staff_users_collection.find_one({"_id": ObjectId(appt['doctorId'])})
+                if doctor:
+                    appt['doctorName'] = doctor.get('name', appt.get('doctorName'))
+            except:
+                pass # Keep original name if ID is invalid or not found
+
+        # Update Student Name dynamically
+        if 'studentId' in appt:
+            student = university_students_collection.find_one({"studentId": appt['studentId']})
+            if student:
+                appt['studentName'] = student.get('name', appt.get('studentName'))
+
         all_appts.append(appt)
     return jsonify(all_appts), 200
 
@@ -301,64 +329,92 @@ def cancel_appointment():
 @app.route('/api/admin/create-first-doctor')
 def create_first_doctor():
     # Check if a doctor already exists
-    if staff_users_collection.find_one({"email": "dr.evans@svu.edu"}):
-        return "Doctor Evans already exists."
+    if staff_users_collection.find_one({"email": "dr.venkat@svu.edu"}):
+        return "Doctor Venkat already exists."
 
     # Hash a password
     hashed_password = bcrypt.generate_password_hash("password123").decode('utf-8')
     
     # Insert the new doctor
     staff_users_collection.insert_one({
-        "email": "dr.evans@svu.edu",
-        "name": "Dr. Evans",
+        "email": "dr.venkat@svu.edu",
+        "name": "Dr. Venkat Rao",
         "password": hashed_password,
-        "role": "doctor"
+        "role": "doctor",
+        "specialization": "Senior Doctor - General Medicine"
     })
-    return "Dr. Evans created with password 'password123'."
+    return "Dr. Venkat created with password 'password123'."
 
 @app.route('/api/admin/create-first-pharmacist')
 def create_first_pharmacist():
-    if staff_users_collection.find_one({"email": "pharmacist@svu.edu"}):
+    if staff_users_collection.find_one({"email": "pharmacist.meena@svu.edu"}):
         return "Pharmacist already exists."
 
     hashed_password = bcrypt.generate_password_hash("password123").decode('utf-8')
     
     staff_users_collection.insert_one({
-        "email": "pharmacist@svu.edu",
-        "name": "Sarah Pharma",
+        "email": "pharmacist.meena@svu.edu",
+        "name": "Ms. Meena Kumari",
         "password": hashed_password,
         "role": "pharmacist"
     })
-    return "Pharmacist Sarah created with password 'password123'."
+    return "Pharmacist Meena created with password 'password123'."
 
 @app.route('/api/admin/create-first-labtech')
 def create_first_labtech():
-    if staff_users_collection.find_one({"email": "labtech@svu.edu"}):
+    if staff_users_collection.find_one({"email": "labtech.ravi@svu.edu"}):
         return "Lab Tech already exists."
 
     hashed_password = bcrypt.generate_password_hash("password123").decode('utf-8')
     
     staff_users_collection.insert_one({
-        "email": "labtech@svu.edu",
-        "name": "Lab Tech John",
+        "email": "labtech.ravi@svu.edu",
+        "name": "Mr. Ravi Kumar",
         "password": hashed_password,
         "role": "lab_tech"
     })
-    return "Lab Tech John created with password 'password123'."
+    return "Lab Tech Ravi created with password 'password123'."
 
-# ... (all your existing imports) ...
-# ... (app, bcrypt, CORS, and client connection setup) ...
-
-db = client.smarthealthconnect
-patients_collection = db.patients
-staff_users_collection = db.staff_users
-# --- NEW COLLECTIONS ---
-university_students_collection = db.university_students # For verification
-student_users_collection = db.student_users           # For storing student logins
-appointments_collection = db.appointments
-lab_reports_collection = db.lab_reports
+# ... (Collections moved to top)
 
 # ... (All your existing Patient and Staff API routes are fine) ...
+
+# 2. ADMIN DASHBOARD STATS
+@app.route('/api/admin/stats', methods=['GET'])
+def get_admin_stats():
+    # Total Users = Registered Students + All Staff (Doctors, Pharmacists, etc.)
+    student_count = student_users_collection.count_documents({})
+    staff_count = staff_users_collection.count_documents({})
+    total_users = student_count + staff_count
+
+    # Pending Appointments (Upcoming based on time)
+    # We need to filter for appointments that are in the future
+    all_appts = appointments_collection.find()
+    pending_count = 0
+    now = datetime.now()
+
+    for appt in all_appts:
+        try:
+            # Combine date and time strings to a datetime object
+            # Assumption: date is "YYYY-MM-DD", time is "HH:MM"
+            appt_dt_str = f"{appt['date']} {appt['time']}"
+            appt_dt = datetime.strptime(appt_dt_str, "%Y-%m-%d %H:%M")
+            
+            # Check if it's in the future and NOT cancelled
+            if appt_dt > now and appt.get('status') != 'Cancelled':
+                pending_count += 1
+        except Exception:
+            # Skip invalid dates
+            continue
+
+    # Total Doctors
+    total_doctors = staff_users_collection.count_documents({"role": "doctor"})
+
+    return jsonify({
+        "total_users": total_users,
+        "pending_bookings": pending_count, # Kept key same to minimize frontend breakages, or update frontend too
+        "total_doctors": total_doctors
+    }), 200
 
 # --- 6. STUDENT AUTHENTICATION API ROUTES ---
 
@@ -553,42 +609,59 @@ def get_doctors():
         doctors.append({
             "id": str(doc['_id']),
             "name": doc['name'],
-            "email": doc['email']
+            "email": doc.get('email'),
+            "specialization": doc.get('specialization', 'General Physician') # Default if missing
         })
     return jsonify(doctors), 200
 
 # Book a new appointment
 @app.route('/api/appointments', methods=['POST'])
 def book_appointment():
-    data = request.get_json()
-    
-    doctor_id = data['doctorId']
-    date = data['date']
-    time = data['time']
+    try:
+        data = request.get_json()
+        print(f"[BOOKING ATTEMPT] Data: {data}")
+        
+        doctor_id = data.get('doctorId')
+        date = data.get('date')
+        time = data.get('time')
+        student_id = data.get('studentId')
 
-    # --- DOUBLE BOOKING PREVENTION CHECK ---
-    existing_appt = appointments_collection.find_one({
-        "doctorId": doctor_id,
-        "date": date,
-        "time": time
-    })
-    
-    if existing_appt:
-        return jsonify({"error": "This slot has already been booked! Please choose another."}), 409
+        if not all([doctor_id, date, time, student_id]):
+            print("[BOOKING FAILED] Missing fields")
+            return jsonify({"error": "Missing required fields"}), 400
 
-    # Insert into DB (Note: we now save date and time separately)
-    appointments_collection.insert_one({
-        "studentId": data['studentId'],
-        "studentName": data['studentName'],
-        "doctorId": doctor_id,
-        "doctorName": data['doctorName'],
-        "date": date,
-        "time": time,
-        "reason": data['reason'],
-        "status": "Scheduled"
-    })
-    
-    return jsonify({"message": "Appointment booked successfully!"}), 201
+        # --- DOUBLE BOOKING PREVENTION CHECK ---
+        existing_appt = appointments_collection.find_one({
+            "doctorId": doctor_id,
+            "date": date,
+            "time": time
+        })
+        
+        if existing_appt:
+            print(f"[BOOKING FAILED] Slot occupied: Doc={doctor_id} Date={date} Time={time}")
+            return jsonify({"error": "This slot has already been booked! Please choose another."}), 409
+
+        # Insert into DB
+        new_appt = {
+            "studentId": student_id,
+            "studentName": data.get('studentName', 'Unknown'),
+            "doctorId": doctor_id,
+            "doctorName": data.get('doctorName', 'Unknown'),
+            "date": date,
+            "time": time,
+            "reason": data.get('reason', ''),
+            "status": "Scheduled"
+        }
+        
+        result = appointments_collection.insert_one(new_appt)
+        print(f"[BOOKING SUCCESS] ID: {result.inserted_id}")
+        
+        return jsonify({"message": "Appointment booked successfully!"}), 201
+    except Exception as e:
+        print(f"[BOOKING ERROR] Exception: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 # Get appointments for a specific student (History)
 @app.route('/api/appointments/student/<student_id>', methods=['GET'])
@@ -745,6 +818,7 @@ def create_prescription():
         "diagnosis": data.get('diagnosis', ''),
         "medications": data['medications'], # List of objects: { name, dosage, frequency, duration }
         "notes": data.get('notes', ''),
+        "status": "Pending" if data.get('referToPharmacist') else "Private", # NEW: Status for Pharmacy
         "createdAt": datetime.now()
     }
 
@@ -767,6 +841,58 @@ def get_student_prescriptions(student_id):
         prescriptions.append(p)
         
     return jsonify(prescriptions), 200
+
+# Get Pending Prescriptions for Pharmacy
+@app.route('/api/pharmacy/queue', methods=['GET'])
+def get_pharmacy_queue():
+    pending = []
+    cursor = prescriptions_collection.find({"status": "Pending"}).sort("date", -1)
+    for p in cursor:
+        p['_id'] = str(p['_id'])
+        pending.append(p)
+    return jsonify(pending), 200
+
+# Get Pharmacy Stats (Pending Count, Dispensed Today Count)
+@app.route('/api/pharmacy/stats', methods=['GET'])
+def get_pharmacy_stats():
+    pending_count = prescriptions_collection.count_documents({"status": "Pending"})
+    
+    today_start = datetime.now().strftime("%Y-%m-%d")
+    # Assuming we track dispensed date. If not, we rely on 'date' or updated_at. 
+    # For now, let's assume 'dispensedAt' is set when dispensing.
+    # If not set, we might need to rely on 'date' if dispensed same day.
+    # Safest is to check 'dispensedDate' field which we will set.
+    
+    dispensed_today_count = prescriptions_collection.count_documents({
+        "status": "Dispensed",
+        "dispensedDate": today_start
+    })
+    
+    return jsonify({
+        "pending": pending_count,
+        "dispensedToday": dispensed_today_count
+    }), 200
+
+# Dispense Prescription
+@app.route('/api/pharmacy/dispense/<prescription_id>', methods=['POST'])
+def dispense_prescription(prescription_id):
+    try:
+        updated = prescriptions_collection.update_one(
+            {"_id": ObjectId(prescription_id)},
+            {
+                "$set": {
+                    "status": "Dispensed",
+                    "dispensedDate": datetime.now().strftime("%Y-%m-%d"),
+                    "dispensedAt": datetime.now()
+                }
+            }
+        )
+        if updated.modified_count == 1:
+            return jsonify({"message": "Prescription Dispensed Successfully"}), 200
+        else:
+            return jsonify({"error": "Prescription not found or already dispensed"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # --- 11. LAB REPORTS ROUTES ---
 
@@ -794,19 +920,36 @@ def upload_lab_report():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
 
         # Save metadata to DB
-        report = {
-            "studentId": student_id,
-            "testName": test_name,
-            "remarks": remarks,
-            "filename": unique_filename,
-            "uploadedBy": lab_tech_id,
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "createdAt": datetime.now()
-        }
         
-        lab_reports_collection.insert_one(report)
-        
-        return jsonify({"message": "Report uploaded successfully"}), 201
+    # Optional: Link to a Request ID if provided
+    request_id = request.form.get('requestId')
+    
+    report = {
+        "studentId": student_id,
+        "labTechId": request.form.get('labTechId'),
+        "testName": request.form.get('testName'),
+        "filename": unique_filename, # Corrected to unique_filename
+        "remarks": request.form.get('remarks', ''),
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "requestId": request_id # Link to request
+    }
+    
+    result = lab_reports_collection.insert_one(report)
+    
+    # If linked to a request, mark request as Completed and link report ID
+    if request_id:
+        lab_requests_collection.update_one(
+            {"_id": ObjectId(request_id)},
+            {
+                "$set": {
+                    "status": "Completed", 
+                    "reportId": str(result.inserted_id),
+                    "completedAt": datetime.now()
+                }
+            }
+        )
+    
+    return jsonify({"message": "Report uploaded successfully!"}), 201
 
 # Get Reports for a Student
 @app.route('/api/lab/reports/<student_id>', methods=['GET'])
@@ -816,6 +959,91 @@ def get_student_reports(student_id):
         r['_id'] = str(r['_id'])
         reports.append(r)
     return jsonify(reports), 200
+
+# --- 11b. LAB REQUEST ROUTES (DOCTOR -> LAB) ---
+
+@app.route('/api/lab/request', methods=['POST'])
+def create_lab_request():
+    data = request.get_json()
+    
+    # Required: studentId, doctorId, testType
+    if not data.get('studentId') or not data.get('testType'):
+        return jsonify({"error": "Missing required fields"}), 400
+        
+    lab_request = {
+        "studentId": data['studentId'],
+        "studentName": data.get('studentName', 'Unknown'),
+        "doctorId": data['doctorId'],
+        "doctorName": data.get('doctorName', 'Unknown'),
+        "testType": data['testType'], # e.g. "Blood Test", "X-Ray"
+        "notes": data.get('notes', ''),
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "status": "Pending", # Pending -> Completed
+        "createdAt": datetime.now()
+    }
+    
+    lab_requests_collection.insert_one(lab_request)
+    return jsonify({"message": "Lab request sent successfully!"}), 201
+
+@app.route('/api/lab/requests', methods=['GET'])
+def get_all_lab_requests():
+    # For Lab Tech View (Pending first)
+    requests = []
+    # Sort Pending first, then by date desc
+    for req in lab_requests_collection.find().sort([("status", 1), ("createdAt", -1)]):
+        req['_id'] = str(req['_id'])
+        requests.append(req)
+    return jsonify(requests), 200
+
+# Get Lab Stats (Pending vs Completed)
+@app.route('/api/lab/stats', methods=['GET'])
+def get_lab_stats():
+    pending = lab_requests_collection.count_documents({"status": "Pending"})
+    completed = lab_requests_collection.count_documents({"status": "Completed"})
+    return jsonify({"pending": pending, "completed": completed}), 200
+
+@app.route('/api/lab/requests/student/<student_id>', methods=['GET'])
+def get_student_lab_requests(student_id):
+    requests = []
+    # Sort by date desc
+    for req in lab_requests_collection.find({"studentId": student_id}).sort("createdAt", -1):
+        req['_id'] = str(req['_id'])
+        requests.append(req)
+    return jsonify(requests), 200
+
+# Get Doctor Stats (Queue, Completed Today, Total Unique Patients)
+@app.route('/api/doctor/stats/<doctor_id>', methods=['GET'])
+def get_doctor_stats(doctor_id):
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    # 1. Patients in Queue (Today's Pending/Scheduled)
+    queue_count = appointments_collection.count_documents({
+        "doctorId": doctor_id,
+        "date": today,
+        "status": {"$in": ["Scheduled", "Pending"]} 
+    })
+    
+    # 2. Completed Today
+    completed_today = appointments_collection.count_documents({
+        "doctorId": doctor_id,
+        "date": today,
+        "status": "Completed"
+    })
+    
+    # 3. Total Patients (Unique Student IDs across all time)
+    pipeline = [
+        {"$match": {"doctorId": doctor_id}},
+        {"$group": {"_id": "$studentId"}},
+        {"$count": "total"}
+    ]
+    cursor = list(appointments_collection.aggregate(pipeline))
+    total_patients = cursor[0]['total'] if cursor else 0
+    
+    return jsonify({
+        "queue": queue_count,
+        "completedToday": completed_today,
+        "totalPatients": total_patients
+    }), 200
 
 # Serve Uploaded Files
 @app.route('/uploads/<filename>')

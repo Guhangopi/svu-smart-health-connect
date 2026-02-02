@@ -108,7 +108,13 @@ function AuthPage() {
       else navigate("/");
 
     } catch (err) {
-      setError(err.response?.data?.error || "Login failed. Check credentials.");
+      console.error("LOGIN ERROR DETAILS:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          headers: err.response?.headers,
+          fullError: err
+      });
+      setError(err.response?.data?.error || `Login failed (${err.response?.status || 'Network Error'}). Check console.`);
     }
   };
 

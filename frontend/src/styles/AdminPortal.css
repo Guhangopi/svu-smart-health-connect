@@ -1,0 +1,47 @@
+.dashboard-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.view-details-link {
+    transition: all 0.2s ease;
+}
+
+.view-details-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Button Group Spacing */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Compact Button for Admin Tables */
+.btn-compact {
+    padding: 0.4rem 0.8rem !important; /* Override global btn styles */
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+    height: auto;
+    box-shadow: none;
+}
+
+/* Button Variants for Admin */
+.btn-edit {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+}

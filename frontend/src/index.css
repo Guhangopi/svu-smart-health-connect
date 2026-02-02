@@ -12,7 +12,7 @@
   --accent-rose: hsl(340, 85%, 60%);   /* Soft Red */
   
   /* Neutrals */
-  --bg-body: hsl(210, 40%, 98%);       /* Very light cool gray */
+  --bg-body: hsl(220, 15%, 94%);       /* Darker cool gray for better contrast */
   --bg-card: #ffffff;
   --text-main: hsl(215, 25%, 27%);     /* Dark Slate */
   --text-muted: hsl(215, 20%, 55%);    /* Medium Slate */
@@ -255,4 +255,49 @@ button.btn-sm {
 
 .fade-in {
   animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* --- Dashboard Stats Cards --- */
+.stat-card {
+  flex: 1;
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  border-left: 5px solid transparent;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-card.yellow { border-left-color: #ffc107; }
+.stat-card.green { border-left-color: #28a745; }
+
+/* --- Item Cards (Grid) --- */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.item-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  position: relative;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.item-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
 }
