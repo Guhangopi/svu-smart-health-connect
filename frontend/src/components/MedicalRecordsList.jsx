@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 const MedicalRecordsList = ({ studentId }) => {
   const [reports, setReports] = useState([]);
@@ -14,7 +15,7 @@ const MedicalRecordsList = ({ studentId }) => {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/lab/reports/${studentId}`);
+      const res = await axios.get(`${API_BASE_URL}/api/lab/reports/${studentId}`);
       setReports(res.data);
     } catch (err) {
       console.error("Error fetching reports", err);

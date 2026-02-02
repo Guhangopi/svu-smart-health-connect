@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
 // Using the Authenticity of the SVU Admin Block for trust
+import { API_BASE_URL } from '../config';
+
+// Using the Authenticity of the SVU Admin Block for trust
 const HERO_IMAGE = "/svu_admin.jpg"; 
 
 function HomePage() {
@@ -11,7 +14,7 @@ function HomePage() {
   const [doctors, setDoctors] = React.useState([]);
 
   React.useEffect(() => {
-    fetch('/api/doctors')
+    fetch(`${API_BASE_URL}/api/doctors`)
       .then(res => res.json())
       .then(data => {
         setDoctors(data);

@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const PrescriptionList = ({ studentId }) => {
     const [prescriptions, setPrescriptions] = useState([]);
@@ -11,7 +12,7 @@ const PrescriptionList = ({ studentId }) => {
 
         const fetchPrescriptions = async () => {
             try {
-                const res = await axios.get(`/api/prescriptions/student/${studentId}`);
+                const res = await axios.get(`${API_BASE_URL}/api/prescriptions/student/${studentId}`);
                 setPrescriptions(res.data);
             } catch (err) {
                 console.error("Error fetching prescriptions:", err);

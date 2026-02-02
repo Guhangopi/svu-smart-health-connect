@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const LabRequestModal = ({ studentId, studentName, doctorId, doctorName, onSuccess, onCancel }) => {
     const [testType, setTestType] = useState('Blood Test');
@@ -11,7 +12,7 @@ const LabRequestModal = ({ studentId, studentName, doctorId, doctorName, onSucce
         setIsSubmitting(true);
 
         try {
-            await axios.post('/api/lab/request', {
+            await axios.post(`${API_BASE_URL}/api/lab/request`, {
                 studentId,
                 studentName,
                 doctorId,

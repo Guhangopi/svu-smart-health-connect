@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { API_BASE_URL } from "../config";
 
 
 
@@ -35,10 +36,10 @@ function LabTechnicianPortal() {
 
   const fetchData = async () => {
       try {
-          const statsRes = await axios.get('/api/lab/stats');
+          const statsRes = await axios.get(`${API_BASE_URL}/api/lab/stats`);
           setStats(statsRes.data);
 
-          const ordersRes = await axios.get('/api/lab/requests');
+          const ordersRes = await axios.get(`${API_BASE_URL}/api/lab/requests`);
           // Filter for pending orders for the main list, or show all with status
           // The API returns all, sorted by status (Pending first).
           setLabOrders(ordersRes.data);
@@ -78,7 +79,7 @@ function LabTechnicianPortal() {
 
     try {
       setLoading(true);
-      await axios.post("/api/lab/upload", formData, {
+      await axios.post(`${API_BASE_URL}/api/lab/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Report uploaded & Order Completed!");

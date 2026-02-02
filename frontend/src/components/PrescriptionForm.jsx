@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const PrescriptionForm = ({ studentId, studentName, doctorId, doctorName, onSuccess, onCancel }) => {
     const [diagnosis, setDiagnosis] = useState('');
@@ -51,7 +52,7 @@ const PrescriptionForm = ({ studentId, studentName, doctorId, doctorName, onSucc
         };
 
         try {
-            await axios.post('/api/prescriptions', payload);
+            await axios.post(`${API_BASE_URL}/api/prescriptions`, payload);
             alert(`Prescription saved! ${referToPharmacist ? '(Sent to Pharmacy)' : ''}`);
             if(onSuccess) onSuccess();
         } catch (err) {

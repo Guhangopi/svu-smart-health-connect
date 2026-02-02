@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./AuthPage.css";
+import { API_BASE_URL } from "../config";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -71,10 +72,10 @@ function AuthPage() {
       let payload = {};
 
       if (loginType === "student") {
-        url = "/api/student/login";
+        url = `${API_BASE_URL}/api/student/login`;
         payload = { studentId: loginStudentId, password: loginPassword };
       } else {
-        url = "/api/staff/login";
+        url = `${API_BASE_URL}/api/staff/login`;
         payload = { email: staffEmail, password: loginPassword };
       }
 
@@ -122,7 +123,7 @@ function AuthPage() {
     e.preventDefault();
     setError(""); setMessage("");
     try {
-      const response = await axios.post("/api/student/verify", {
+      const response = await axios.post(`${API_BASE_URL}/api/student/verify`, {
         studentId: verifyStudentId, phone: verifyPhone
       });
       setVerifiedName(response.data.name);
@@ -137,7 +138,7 @@ function AuthPage() {
     e.preventDefault();
     setError(""); setMessage("");
     try {
-      await axios.post("/api/student/create-account", {
+      await axios.post(`${API_BASE_URL}/api/student/create-account`, {
         studentId: verifyStudentId, password: createPassword
       });
       setActivateStep(3); // Success state

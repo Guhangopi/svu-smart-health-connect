@@ -8,6 +8,7 @@ import CalendarView from "../components/CalendarView";
 import Sidebar from "../components/Sidebar";
 import MedicalRecordsList from "../components/MedicalRecordsList";
 import LabRequestModal from "../components/LabRequestModal";
+import { API_BASE_URL } from "../config";
 
 function DoctorPortal() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ function DoctorPortal() {
 
     // 3. FETCH APPOINTMENTS FOR THIS DOCTOR
     axios
-      .get(`http://127.0.0.1:5000/api/appointments/doctor/${parsedUser.id}`)
+      .get(`${API_BASE_URL}/api/appointments/doctor/${parsedUser.id}`)
       .then((res) => {
         // Filter: Show only Today and Future appointments
         const today = new Date().toISOString().split('T')[0];
@@ -55,12 +56,12 @@ function DoctorPortal() {
       .catch((err) => console.error("Error fetching schedule:", err));
       
     // 4. FETCH UNAVAILABLE DATES
-    axios.get(`http://127.0.0.1:5000/api/doctor/unavailable/${parsedUser.id}`)
+    axios.get(`${API_BASE_URL}/api/doctor/unavailable/${parsedUser.id}`)
         .then(res => setUnavailableDates(res.data))
         .catch(err => console.error("Error fetching unavailable dates:", err));
     
     // 5. FETCH STATS
-    axios.get(`http://127.0.0.1:5000/api/doctor/stats/${parsedUser.id}`)
+    axios.get(`${API_BASE_URL}/api/doctor/stats/${parsedUser.id}`)
         .then(res => setStats(res.data))
         .catch(err => console.error("Error fetching stats:", err));
         
@@ -71,7 +72,7 @@ function DoctorPortal() {
       setSelectedDate(dateStr);
       
       // Fetch available slots for this date
-      axios.post('http://127.0.0.1:5000/api/slots', {
+      axios.post(`${API_BASE_URL}/api/slots`, {
           doctorId: user.id,
           date: dateStr
       }).then(res => {

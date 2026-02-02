@@ -7,6 +7,7 @@ import Sidebar from "../components/Sidebar";
 import PrescriptionList from "../components/PrescriptionList";
 import MedicalRecordsList from "../components/MedicalRecordsList";
 import CalendarView from "../components/CalendarView"; // Import CalendarView
+import { API_BASE_URL } from "../config";
 
 
 function PatientPortal() {
@@ -47,14 +48,14 @@ function PatientPortal() {
   // 2. FETCH HELPERS
   const fetchDoctors = () => {
     axios
-      .get("http://127.0.0.1:5000/api/doctors")
+      .get(`${API_BASE_URL}/api/doctors`)
       .then((res) => setDoctors(res.data))
       .catch((err) => console.error(err));
   };
 
   const fetchHistory = (studentId) => {
     axios
-      .get(`http://127.0.0.1:5000/api/appointments/student/${studentId}`)
+      .get(`${API_BASE_URL}/api/appointments/student/${studentId}`)
       .then((res) => setMyAppointments(res.data))
       .catch((err) => console.error(err));
   };
@@ -63,7 +64,7 @@ function PatientPortal() {
   // Fetch Unavailable Dates when Doctor Changes
   useEffect(() => {
     if (selectedDocId) {
-        axios.get(`http://127.0.0.1:5000/api/doctor/unavailable/${selectedDocId}`)
+        axios.get(`${API_BASE_URL}/api/doctor/unavailable/${selectedDocId}`)
             .then(res => setUnavailableDates(res.data))
             .catch(err => console.error("Error fetching unavailable dates:", err));
     } else {
@@ -79,7 +80,7 @@ function PatientPortal() {
   useEffect(() => {
     if (selectedDocId && selectedDate) {
       axios
-        .post("http://127.0.0.1:5000/api/slots", {
+        .post(`${API_BASE_URL}/api/slots`, {
           doctorId: selectedDocId,
           date: selectedDate,
         })
@@ -109,7 +110,7 @@ function PatientPortal() {
     const doctorObj = doctors.find((d) => d.id === selectedDocId);
 
     try {
-      await axios.post("http://127.0.0.1:5000/api/appointments", {
+      await axios.post(`${API_BASE_URL}/api/appointments`, {
         studentId: user.studentId,
         studentName: user.name,
         doctorId: selectedDocId,
@@ -325,7 +326,7 @@ function PatientPortal() {
                                                 className="btn-sm danger"
                                                 onClick={() => {
                                                     if(window.confirm('Cancel this appointment?')) {
-                                                        axios.post('http://127.0.0.1:5000/api/appointments/cancel', { appointmentId: appt._id })
+                                                        axios.post(`${API_BASE_URL}/api/appointments/cancel`, { appointmentId: appt._id })
                                                             .then(() => {
                                                                 setMyAppointments(prev => prev.map(a => a._id === appt._id ? {...a, status: 'Cancelled'} : a));
                                                                 toast.warn("Appointment Cancelled");

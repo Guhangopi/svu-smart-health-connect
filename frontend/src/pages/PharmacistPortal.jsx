@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import axios from 'axios';
 import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from "../components/Sidebar";
+import { API_BASE_URL } from "../config";
 
 function PharmacistPortal() {
   const navigate = useNavigate();
@@ -34,10 +36,10 @@ function PharmacistPortal() {
 
   const fetchData = async () => {
       try {
-          const statsRes = await axios.get('/api/pharmacy/stats');
+          const statsRes = await axios.get(`${API_BASE_URL}/api/pharmacy/stats`);
           setStats(statsRes.data);
 
-          const queueRes = await axios.get('/api/pharmacy/queue');
+          const queueRes = await axios.get(`${API_BASE_URL}/api/pharmacy/queue`);
           setPendingPrescriptions(queueRes.data);
       } catch (err) {
           console.error("Error fetching pharmacy data:", err);
@@ -52,7 +54,7 @@ function PharmacistPortal() {
   const handleDispense = async (id) => {
       if(!window.confirm("Mark this prescription as dispensed?")) return;
       try {
-          await axios.post(`/api/pharmacy/dispense/${id}`);
+          await axios.post(`${API_BASE_URL}/api/pharmacy/dispense/${id}`);
           toast.success("Prescription Dispensed!");
           setRefreshTrigger(prev => prev + 1); // Refresh data
       } catch (err) {

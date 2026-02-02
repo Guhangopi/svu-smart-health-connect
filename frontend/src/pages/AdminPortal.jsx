@@ -6,6 +6,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import CalendarView from "../components/CalendarView";
 import "../styles/AdminPortal.css";
 import Sidebar from "../components/Sidebar";
+import { API_BASE_URL } from "../config";
 
 function AdminPortal() {
   const navigate = useNavigate();
@@ -62,37 +63,37 @@ function AdminPortal() {
   }, [navigate]);
 
   const fetchStats = () => {
-    axios.get("http://127.0.0.1:5000/api/admin/stats")
+    axios.get(`${API_BASE_URL}/api/admin/stats`)
       .then((res) => setStats(res.data))
       .catch((err) => console.error(err));
   };
 
   const fetchStudents = () => {
-    axios.get("http://127.0.0.1:5000/api/admin/university-students")
+    axios.get(`${API_BASE_URL}/api/admin/university-students`)
       .then((res) => setStudents(res.data))
       .catch((err) => console.error(err));
   };
 
   const fetchStaff = () => {
-    axios.get("http://127.0.0.1:5000/api/admin/staff")
+    axios.get(`${API_BASE_URL}/api/admin/staff`)
       .then((res) => setStaff(res.data))
       .catch((err) => console.error(err));
   };
 
   const fetchDoctors = () => {
-    axios.get("http://127.0.0.1:5000/api/admin/doctors")
+    axios.get(`${API_BASE_URL}/api/admin/doctors`)
       .then((res) => setDoctors(res.data))
       .catch((err) => console.error(err));
   };
 
   const fetchAppointments = () => {
-    axios.get("http://127.0.0.1:5000/api/admin/appointments")
+    axios.get(`${API_BASE_URL}/api/admin/appointments`)
       .then((res) => setAppointments(res.data))
       .catch((err) => console.error(err));
   };
 
   const handleCreateDoctor = () => {
-    axios.post("http://127.0.0.1:5000/api/admin/doctors", formData)
+    axios.post(`${API_BASE_URL}/api/admin/doctors`, formData)
       .then(() => {
         toast.success("Doctor Created Successfully!");
         setShowAddModal(false);
@@ -103,7 +104,7 @@ function AdminPortal() {
   };
 
   const handleUpdateDoctor = () => {
-    axios.put(`http://127.0.0.1:5000/api/admin/doctor/${editingDoctor.id}`, formData)
+    axios.put(`${API_BASE_URL}/api/admin/doctor/${editingDoctor.id}`, formData)
       .then(() => {
         toast.info("Doctor details updated.");
         setShowEditModal(false);
@@ -115,7 +116,7 @@ function AdminPortal() {
 
   const handleDeleteDoctor = (id) => {
     if (window.confirm("Are you sure you want to remove this doctor?")) {
-      axios.delete(`http://127.0.0.1:5000/api/admin/doctor/${id}`)
+      axios.delete(`${API_BASE_URL}/api/admin/doctor/${id}`)
         .then(() => {
             fetchDoctors();
             toast.warn("Doctor removed.");
@@ -126,7 +127,7 @@ function AdminPortal() {
 
   const handleDeleteAppointment = (id) => {
     if (window.confirm("Are you sure you want to PERMANENTLY delete this appointment?")) {
-        axios.delete(`http://127.0.0.1:5000/api/admin/appointment/${id}`)
+        axios.delete(`${API_BASE_URL}/api/admin/appointment/${id}`)
             .then(() => {
                 fetchAppointments();
                 toast.success("Appointment deleted.");
@@ -152,7 +153,7 @@ function AdminPortal() {
 
   // --- STUDENT LOGIC ---
   const handleAddStudent = () => {
-      axios.post("http://127.0.0.1:5000/api/admin/university-students", studentForm)
+      axios.post(`${API_BASE_URL}/api/admin/university-students`, studentForm)
         .then(() => {
             toast.success("Student Added!");
             setShowStudentModal(false);
@@ -164,7 +165,7 @@ function AdminPortal() {
 
   const handleDeleteStudent = (id) => {
       if (window.confirm("Delete this student record?")) {
-          axios.delete(`http://127.0.0.1:5000/api/admin/university-students/${id}`)
+          axios.delete(`${API_BASE_URL}/api/admin/university-students/${id}`)
            .then(() => {
                toast.success("Student Removed");
                fetchStudents();
@@ -179,7 +180,7 @@ function AdminPortal() {
       const formData = new FormData();
       formData.append('file', fileToUpload);
 
-      axios.post("http://127.0.0.1:5000/api/admin/university-students/upload", formData)
+      axios.post(`${API_BASE_URL}/api/admin/university-students/upload`, formData)
         .then((res) => {
             toast.success(res.data.message);
             if (res.data.errors.length > 0) {
@@ -195,7 +196,7 @@ function AdminPortal() {
 
   // --- STAFF MANAGEMENT LOGIC ---
   const handleCreateStaff = () => {
-      axios.post("http://127.0.0.1:5000/api/admin/staff", staffForm)
+      axios.post(`${API_BASE_URL}/api/admin/staff`, staffForm)
         .then(() => {
             toast.success("Staff member added!");
             setShowAddStaffModal(false);
@@ -206,7 +207,7 @@ function AdminPortal() {
   };
 
   const handleUpdateStaff = () => {
-      axios.put(`http://127.0.0.1:5000/api/admin/staff/${editingStaff.id}`, staffForm)
+      axios.put(`${API_BASE_URL}/api/admin/staff/${editingStaff.id}`, staffForm)
         .then(() => {
             toast.info("Staff details updated.");
             setShowEditStaffModal(false);
@@ -218,7 +219,7 @@ function AdminPortal() {
 
   const handleDeleteStaff = (id) => {
       if (window.confirm("Remove this staff member?")) {
-          axios.delete(`http://127.0.0.1:5000/api/admin/staff/${id}`)
+          axios.delete(`${API_BASE_URL}/api/admin/staff/${id}`)
             .then(() => {
                 toast.warn("Staff member removed.");
                 fetchStaff();
@@ -242,7 +243,7 @@ function AdminPortal() {
   const openCalendarModal = (doc) => {
       setCalendarDoctor(doc);
       // Fetch unavailable dates for this doctor
-      axios.get(`http://127.0.0.1:5000/api/doctor/unavailable/${doc.id}`)
+      axios.get(`${API_BASE_URL}/api/doctor/unavailable/${doc.id}`)
         .then(res => setUnavailableDates(res.data))
         .catch(err => console.error(err));
       setShowCalendarModal(true);
@@ -251,7 +252,7 @@ function AdminPortal() {
   const toggleUnavailable = (dateStr) => {
       if (!calendarDoctor) return;
       
-      axios.post('http://127.0.0.1:5000/api/doctor/unavailable', {
+      axios.post(`${API_BASE_URL}/api/doctor/unavailable`, {
           doctorId: calendarDoctor.id,
           date: dateStr
       }).then(res => {
