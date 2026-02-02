@@ -41,26 +41,28 @@ const PrescriptionList = ({ studentId }) => {
                         </div>
                     </div>
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px' }}>
-                        <thead>
-                            <tr style={{ background: '#f8f9fa', textAlign: 'left' }}>
-                                <th style={{ padding: '8px' }}>Medicine</th>
-                                <th style={{ padding: '8px' }}>Dosage</th>
-                                <th style={{ padding: '8px' }}>Freq</th>
-                                <th style={{ padding: '8px' }}>Duration</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {scrip.medications.map((med, idx) => (
-                                <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '8px' }}>{med.name}</td>
-                                    <td style={{ padding: '8px' }}>{med.dosage}</td>
-                                    <td style={{ padding: '8px' }}>{med.frequency}</td>
-                                    <td style={{ padding: '8px' }}>{med.duration}</td>
+                    <div className="table-container">
+                        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px' }}>
+                            <thead>
+                                <tr style={{ background: '#f8f9fa', textAlign: 'left' }}>
+                                    <th style={{ padding: '8px', minWidth: '120px' }}>Medicine</th>
+                                    <th style={{ padding: '8px' }}>Dosage</th>
+                                    <th style={{ padding: '8px' }}>Freq</th>
+                                    <th style={{ padding: '8px' }}>Duration</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {scrip.medications.map((med, idx) => (
+                                    <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
+                                        <td style={{ padding: '8px' }}>{med.name}</td>
+                                        <td style={{ padding: '8px' }}>{med.dosage}</td>
+                                        <td style={{ padding: '8px' }}>{med.frequency}</td>
+                                        <td style={{ padding: '8px' }}>{med.duration}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
                     {scrip.notes && (
                         <div style={{ background: '#fff3cd', padding: '10px', borderRadius: '5px', fontSize: '0.9em' }}>

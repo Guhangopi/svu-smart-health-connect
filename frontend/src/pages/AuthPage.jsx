@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import "./AuthPage.css";
 import { API_BASE_URL } from "../config";
 
@@ -226,6 +226,12 @@ function AuthPage() {
           </div>
         </div>
 
+        {/* --- MOBILE BANNER (Visible only on Mobile) --- */}
+        <div className="d-md-none bg-primary text-white p-4 text-center" style={{background: 'linear-gradient(135deg, #0ca678, #3b5bdb)'}}>
+            <h1 className="h3 fw-bold mb-1">Smart Health</h1>
+            <p className="small mb-0 opacity-75">Your wellness journey starts here.</p>
+        </div>
+
         {/* --- RIGHT SIDE: FORMS --- */}
         <div className="auth-form-side">
           
@@ -285,6 +291,8 @@ function AuthPage() {
                    </div>
                 )}
 
+
+
                 <div className="mb-4">
                    <label className="form-label small fw-bold text-secondary">Password</label>
                    <div className="input-group">
@@ -313,12 +321,15 @@ function AuthPage() {
               <div className="text-center mt-4 pt-3 border-top">
                 {loginType === 'student' && (
                   <>
-                    <p className="small text-muted mb-0">Don't have an account?</p>
-                    <button onClick={() => toggleMode('register')} className="btn btn-auth-action w-100 mt-2 py-2 rounded-3 fw-bold">
+                    <p className="small text-muted mb-2">Don't have an account?</p>
+                    <button onClick={() => toggleMode('register')} className="btn btn-primary w-100 py-2 rounded-3 fw-bold">
                       Activate Student Account
                     </button>
                   </>
                 )}
+                <div className="mt-3">
+                    <Link to="/" className="text-decoration-none text-muted small fw-medium">← Back to Home</Link>
+                </div>
               </div>
             </div>
           )}
@@ -387,10 +398,13 @@ function AuthPage() {
 
               {activateStep < 3 && (
                 <div className="text-center mt-4 pt-3 border-top">
-                   <p className="small text-muted mb-0">Already have an account?</p>
-                   <button onClick={() => toggleMode('login')} className="btn btn-link p-0 fw-bold">Login here</button>
+                   <p className="small text-muted mb-2">Already have an account?</p>
+                   <button onClick={() => navigate('/login', { state: { mode: 'login', loginType: 'student', title: 'Student Login' } })} className="btn btn-primary w-100 py-2 rounded-3 fw-bold">Sign In Here</button>
                 </div>
               )}
+              <div className="text-center mt-3">
+                 <Link to="/" className="text-decoration-none text-muted small fw-medium">← Back to Home</Link>
+              </div>
             </div>
           )}
 
@@ -416,7 +430,7 @@ function AuthPage() {
                    </div>
                    <div className="d-grid gap-2">
                        <button type="submit" className="btn btn-primary fw-bold">Verify Identity</button>
-                       <button type="button" onClick={() => toggleMode('login')} className="btn btn-light text-muted">Back to Login</button>
+                       <button type="button" onClick={() => toggleMode('login')} className="btn btn-primary w-100 py-2 rounded-3 fw-bold">Back to Login</button>
                    </div>
                 </form>
               )}

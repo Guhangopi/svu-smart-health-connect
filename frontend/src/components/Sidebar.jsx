@@ -4,6 +4,10 @@ import '../styles/Sidebar.css';
 
 const Sidebar = ({ userRole, activeTab, setActiveTab, onLogout }) => {
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const toggleSidebar = () => setIsOpen(!isOpen);
+  const closeSidebar = () => setIsOpen(false);
 
   const menuItems = [
     { label: 'Admin Hub', tab: 'hub', role: 'admin', icon: '⚡' },
@@ -28,31 +32,59 @@ const Sidebar = ({ userRole, activeTab, setActiveTab, onLogout }) => {
   };
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-header">
-        <h2>SmartHealth</h2>
-        <span className="badge">{formatRole(userRole)}</span>
-      </div>
+    <>
+      {/* Mobile Toggle Button */}
+      <button className="mobile-menu-toggle" onClick={toggleSidebar}>
+        {isOpen ? '✕' : '☰'}
+      </button>
 
-      <nav className="sidebar-nav">
-        {menuItems.filter(item => item.role === userRole).map((item, idx) => (
-          <button 
-            key={idx}
-            className={`nav-item ${activeTab === item.tab ? 'active' : ''}`}
-            onClick={() => setActiveTab(item.tab)}
-          >
-            <span className="icon">{item.icon}</span>
-            {item.label}
+      {/* Overlay for mobile */}
+      <div 
+        className={`sidebar-overlay ${isOpen ? 'visible' : ''}`} 
+        onClick={closeSidebar}
+      ></div>
+
+      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center'}}>
+             <div>
+                <h2>SmartHealth</h2>
+                <span className="badge">{formatRole(userRole)}</span>
+             </div>
+             {/* Close button inside sidebar for convenience on mobile */}
+             <button 
+                className="d-md-none" 
+                onClick={closeSidebar}
+                style={{background: 'none', border: 'none', color: 'white', fontSize: '1.5rem', padding: 0}}
+             >
+                ✕
+             </button>
+          </div>
+        </div>
+
+        <nav className="sidebar-nav">
+          {menuItems.filter(item => item.role === userRole).map((item, idx) => (
+            <button 
+              key={idx}
+              className={`nav-item ${activeTab === item.tab ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab(item.tab);
+                closeSidebar(); // Close on selection (mobile)
+              }}
+            >
+              <span className="icon">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <button onClick={onLogout} className="logout-btn">
+            🚪 Logout
           </button>
-        ))}
-      </nav>
-
-      <div className="sidebar-footer">
-        <button onClick={onLogout} className="logout-btn">
-          🚪 Logout
-        </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

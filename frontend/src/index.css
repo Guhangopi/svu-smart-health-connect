@@ -42,6 +42,7 @@ body {
   color: var(--text-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  padding-top: 70px; /* Offset for Fixed Navbar */
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -88,6 +89,17 @@ a:hover {
   padding: 2rem;
   background: var(--bg-body);
   transition: var(--transition);
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 1.5rem;
+  }
+  
+  .dashboard-container {
+    flex-direction: column;
+  }
 }
 
 /* --- Cards & Glassmorphism --- */
@@ -284,6 +296,12 @@ button.btn-sm {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
+}
+
+@media (max-width: 576px) {
+  .grid-container {
+    grid-template-columns: 1fr; /* Stack on small screens */
+  }
 }
 
 .item-card {

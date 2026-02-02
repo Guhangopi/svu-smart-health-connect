@@ -24,7 +24,7 @@ function HomePage() {
 
   const handleDashboardClick = () => {
     if (!user) {
-      navigate('/login');
+      navigate('/login', { state: { loginType: 'student', title: 'Student Login' } });
       return;
     }
     const roleRoutes = {

@@ -1,0 +1,27 @@
+/* Responsive Forms */
+
+/* Medication Input Row (PrescriptionForm) */
+.medication-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+@media (max-width: 768px) {
+  .medication-row {
+    grid-template-columns: 1fr 1fr; /* 2 columns */
+  }
+  
+  /* Make the first item (Name) span full width */
+  .medication-row > div:first-child {
+    grid-column: 1 / -1;
+  }
+  
+  /* Make the last item (Delete button) span full width */
+  .medication-row > button {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 10px;
+  }
+}

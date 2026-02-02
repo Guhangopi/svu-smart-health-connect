@@ -1,0 +1,283 @@
+/* Navbar.css */
+
+/* Base Navbar Styles */
+.navbar {
+    background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    height: 70px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    position: fixed !important; /* Force Fixed to top */
+    width: 100%; 
+    top: 0 !important;
+    left: 0; 
+    z-index: 1100;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-container {
+    width: 100%;
+    margin: 0;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%; /* Fill navbar */
+}
+
+.brand-link {
+    color: #d4af37;
+    text-decoration: none;
+    font-size: 1.4rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    letter-spacing: -0.02em;
+}
+
+.brand-logo {
+    height: 45px;
+    margin-right: 12px;
+    border-radius: 4px;
+    border: 1px solid #d4af37;
+}
+
+/* Desktop Navigation */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    height: 100%; /* Fill container */
+}
+
+.nav-item {
+    color: #d4af37 !important;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+.nav-item:hover, .nav-item.active {
+    color: #ffdb4d !important; /* Lighter Gold for active/hover */
+    opacity: 1;
+}
+
+.nav-item.active {
+    font-weight: 700;
+}
+
+/* Auth Buttons */
+.auth-container {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.btn-dashboard {
+    text-decoration: none;
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 5px rgba(59, 130, 246, 0.4);
+    transition: transform 0.2s;
+}
+
+.btn-dashboard:hover {
+    transform: translateY(-1px);
+    background-color: #2563eb;
+}
+
+.btn-logout {
+    background: transparent;
+    color: #fca5a5;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 999px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Dropdown */
+.signin-wrapper {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.signin-trigger {
+    color: #d4af37 !important;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    font-weight: 700;
+    white-space: nowrap; /* Single line enforced */
+    transition: color 0.2s;
+}
+
+.signin-trigger:hover {
+    color: #ffdb4d !important;
+}
+
+.signin-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #ffffff;
+    border-radius: 4px; /* Simple rounded corners */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); /* Clean standard shadow */
+    flex-direction: column;
+    min-width: 160px; /* More compact width */
+    z-index: 1000;
+    padding: 5px 0; /* Minimal vertical padding */
+    border: 1px solid #eee;
+    overflow: hidden;
+    /* margin-top removed to fix hover gap */
+}
+
+.signin-wrapper:hover .signin-dropdown {
+    display: flex;
+    animation: fadeIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdown-item {
+    padding: 14px 24px; /* Increased padding */
+    display: block; /* Block for full width click */
+    text-decoration: none;
+    color: #000000; /* Dark Black text */
+    font-size: 0.95rem; /* Slightly larger */
+    font-weight: 700 !important; /* Force Bold */
+    border-bottom: 1px solid #c1c6cc !important;
+    transition: all 0.2s ease;
+    background: transparent;
+    border-left: 3px solid transparent; /* Reserve space for hover accent */
+    margin-bottom: 4px; /* Gap between options */
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.dropdown-item:hover {
+    background: #fff9e6; /* Soft Cream/Gold Tint */
+    color: #000000;
+    border-left: 3px solid #d4af37; /* Gold Accent Bar */
+    padding-left: 21px; /* Adjust padding to keep text stable (24px - 3px border) */
+}
+
+
+/* Mobile Toggle */
+.mobile-toggle {
+    display: none; /* Hidden on desktop */
+    background: transparent;
+    border: none;
+    color: #d4af37;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* MOBILE RESPONSIVE STYLES */
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 1rem;
+    }
+
+    .brand-link {
+        font-size: 1.1rem; /* Smaller logo text */
+    }
+
+    .brand-logo {
+        height: 35px;
+        margin-right: 8px;
+    }
+
+    /* Hide desktop nav */
+    .nav-links, .auth-container {
+        display: none;
+    }
+
+    /* Show hamburger */
+    .mobile-toggle {
+        display: block;
+    }
+
+    /* Mobile Menu Drawer */
+    /* Mobile Menu Drawer */
+    .mobile-menu {
+        position: fixed;
+        top: 70px; /* Directly below navbar */
+        left: 0;
+        width: 100%;
+        height: auto;
+        max-height: calc(100vh - 70px);
+        background: #0f172a; /* Solid Slate 900 - Opaque */
+        border-top: 1px solid rgba(255,255,255,0.1); 
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        animation: slideDown 0.3s ease-out;
+        z-index: 1050; 
+        overflow-y: auto;
+    }
+
+    .nav-item {
+        font-size: 1.1rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        color: #d4af37 !important; /* Gold on Mobile too */
+    }
+    
+    .nav-item.active {
+        color: #ffdb4d !important;
+        padding-left: 10px;
+        border-left: 3px solid #d4af37;
+    }
+
+    .mobile-auth-section {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .dropdown-group {
+        padding-left: 1rem;
+        border-left: 2px solid rgba(255,255,255,0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .dropdown-item {
+        color: #cbd5e1; /* Lighter text for dark bg */
+        padding: 8px 0;
+        border: none;
+        font-weight: 700 !important; /* Force Bold on Mobile */
+    }
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

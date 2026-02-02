@@ -20,6 +20,14 @@
     overflow: hidden;
     box-shadow: 0 20px 40px rgba(0,0,0,0.08);
   }
+
+  @media (max-width: 768px) {
+    .auth-card-wrapper {
+      flex-direction: column;
+      min-height: auto;
+      max-width: 100%;
+    }
+  }
   
   /* --- LEFT SIDE: BRANDING --- */
   .auth-brand-side {
@@ -62,6 +70,12 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+  
+  @media (max-width: 768px) {
+    .auth-form-side {
+      padding: 30px 20px;
+    }
   }
   
   /* Form Elements */

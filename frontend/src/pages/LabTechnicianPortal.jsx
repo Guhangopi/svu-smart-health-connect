@@ -210,12 +210,12 @@ function LabTechnicianPortal() {
             
             <h2 style={{marginBottom: '20px', color: '#0056b3'}}>Upload Report for {processingOrder.studentName}</h2>
             
-            <div style={{background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '25px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
-                <div><strong>Student ID:</strong> {processingOrder.studentId}</div>
-                <div><strong>Test Type:</strong> {processingOrder.testType}</div>
-                <div><strong>Doctor:</strong> {processingOrder.doctorName}</div>
-                <div><strong>Order Date:</strong> {processingOrder.date}</div>
-                <div style={{gridColumn: '1 / -1'}}><strong>Clinical Notes:</strong> {processingOrder.notes || 'None'}</div>
+            <div style={{background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '25px', display: 'flex', flexWrap: 'wrap', gap: '20px'}}>
+                <div style={{flex: '1 1 200px'}}><strong>Student ID:</strong> {processingOrder.studentId}</div>
+                <div style={{flex: '1 1 200px'}}><strong>Test Type:</strong> {processingOrder.testType}</div>
+                <div style={{flex: '1 1 200px'}}><strong>Doctor:</strong> {processingOrder.doctorName}</div>
+                <div style={{flex: '1 1 200px'}}><strong>Order Date:</strong> {processingOrder.date}</div>
+                <div style={{flex: '1 1 100%'}}><strong>Clinical Notes:</strong> {processingOrder.notes || 'None'}</div>
             </div>
 
             <form onSubmit={handleUpload}>

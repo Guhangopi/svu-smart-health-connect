@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import '../styles/ResponsiveForms.css';
 
 const PrescriptionForm = ({ studentId, studentName, doctorId, doctorName, onSuccess, onCancel }) => {
     const [diagnosis, setDiagnosis] = useState('');
@@ -83,7 +84,7 @@ const PrescriptionForm = ({ studentId, studentName, doctorId, doctorName, onSucc
                 <h4>Medications</h4>
                 {medications.map((med, index) => (
                     <div key={index} style={{ background: '#f9f9f9', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #eee' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '10px', alignItems: 'end' }}>
+                        <div className="medication-row">
                             <div>
                                 <label style={{fontSize: '0.85em'}}>Medicine Name</label>
                                 <input 
