@@ -60,6 +60,17 @@ function HomePage() {
               <p className="lead mb-4 text-white fw-bold" style={{maxWidth: '600px'}}>
                 Secure and accessible healthcare services for students, faculty, and staff of Sri Venkateswara University.
               </p>
+
+              <div className="mb-4 border-start border-4 border-warning ps-3">
+                <p className="text-white mb-1" style={{ fontSize: '1.1rem', textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)' }}>
+                    <strong className="text-warning text-uppercase me-2">OP Counter:</strong> 
+                    7:45 AM - 10:45 AM & 4:00 PM - 6:00 PM
+                </p>
+                <p className="text-white mb-0" style={{ fontSize: '1.1rem', textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)' }}>
+                    <strong className="text-warning text-uppercase me-2">Holidays:</strong> 
+                    7:45 AM - 10:45 AM
+                </p>
+              </div>
               
               <div className="d-flex gap-3">
                 <button onClick={handleDashboardClick} className="btn btn-outline-light btn-lg px-4 shadow-sm">
@@ -318,6 +329,7 @@ function HomePage() {
                 <li className="mb-3 d-flex"><span className="me-3" style={{color: '#d4af37'}}>📍</span> SVU Campus, Tirupati</li>
                 <li className="mb-3 d-flex"><span className="me-3" style={{color: '#d4af37'}}>📞</span> +91 98765 43210</li>
                 <li className="mb-3 d-flex"><span className="me-3" style={{color: '#d4af37'}}>📧</span> helpdesk@svu.edu.in</li>
+                <li className="mb-3 d-flex"><span className="me-3" style={{color: '#d4af37'}}>🕒</span> 7:45 AM - 10:45 AM & 4:00 PM - 6:00 PM</li>
               </ul>
             </div>
           </div>
