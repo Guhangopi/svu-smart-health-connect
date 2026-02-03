@@ -35,6 +35,10 @@
     letter-spacing: -0.02em;
 }
 
+.brand-link:hover {
+    color: #d4af37;
+}
+
 .brand-logo {
     height: 45px;
     margin-right: 12px;
